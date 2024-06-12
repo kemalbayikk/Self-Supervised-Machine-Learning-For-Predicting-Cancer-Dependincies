@@ -17,6 +17,8 @@ if __name__ == '__main__':
     premodel_cna = pickle.load(open('results/autoencoders/premodel_tcga_cna_500_200_50.pickle', 'rb'))
     premodel_meth = pickle.load(open('results/autoencoders/premodel_tcga_meth_500_200_50.pickle', 'rb'))
     print("\n\nDatasets successfully loaded.")
+    print(premodel_mut[0][0])
+    print(premodel_mut[0][0].shape[0])
 
     activation_func = 'relu'
     activation_func2 = 'linear'
