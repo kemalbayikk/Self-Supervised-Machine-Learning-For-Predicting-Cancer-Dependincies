@@ -8,7 +8,8 @@ from scipy.stats import pearsonr
 import numpy as np
 from tqdm import tqdm
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+#device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = "cuda"
 print(device)
 
 class VAE(nn.Module):
