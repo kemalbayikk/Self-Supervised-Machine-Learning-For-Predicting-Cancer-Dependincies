@@ -10,13 +10,13 @@ if __name__ == '__main__':
     # with open('Data/ccl_complete_data_28CCL_1298DepOI_36344samples_demo.pickle', 'rb') as f:
     #     data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
+    with open('../Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    premodel_mut = pickle.load(open('results/autoencoders/premodel_tcga_mut_1000_100_50.pickle', 'rb'))
-    premodel_exp = pickle.load(open('results/autoencoders/premodel_tcga_exp_500_200_50.pickle', 'rb'))
-    premodel_cna = pickle.load(open('results/autoencoders/premodel_tcga_cna_500_200_50.pickle', 'rb'))
-    premodel_meth = pickle.load(open('results/autoencoders/premodel_tcga_meth_500_200_50.pickle', 'rb'))
+    premodel_mut = pickle.load(open('../results/autoencoders/premodel_tcga_mut_1000_100_50.pickle', 'rb'))
+    premodel_exp = pickle.load(open('../results/autoencoders/premodel_tcga_exp_500_200_50.pickle', 'rb'))
+    premodel_cna = pickle.load(open('../results/autoencoders/premodel_tcga_cna_500_200_50.pickle', 'rb'))
+    premodel_meth = pickle.load(open('../results/autoencoders/premodel_tcga_meth_500_200_50.pickle', 'rb'))
     print("\n\nDatasets successfully loaded.")
     print(premodel_mut[0][0])
     print(premodel_mut[0][0].shape[0])
@@ -99,5 +99,5 @@ if __name__ == '__main__':
     print("\n\nFull DeepDEP model training completed in %.1f mins.\nloss:%.4f valloss:%.4f testloss:%.4f Pearson Correlation: %.4f" % (
         (time.time() - t)/60, history.history['loss'][early_stopping.stopped_epoch],
         history.history['val_loss'][early_stopping.stopped_epoch], cost_testing, pearson_corr))
-    model_final.save("./results/models/model_demo.h5")
+    model_final.save("../results/models/model_demo.h5")
     print("\n\nFull DeepDEP model saved in /results/models/model_demo.h5\n\n")
