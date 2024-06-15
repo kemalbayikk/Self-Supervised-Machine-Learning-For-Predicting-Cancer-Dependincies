@@ -4,67 +4,123 @@ import torch.nn.functional as F
 import numpy as np
 import pandas as pd
 import time
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+from sklearn.metrics import mean_squared_error
 
-class VAE(nn.Module):
-    def __init__(self, input_dim, hidden_dims, latent_dim):
-        super(VAE, self).__init__()
-        self.fc1 = nn.Linear(input_dim, hidden_dims[0])
-        self.fc2 = nn.Linear(hidden_dims[0], hidden_dims[1])
-        self.fc3_mean = nn.Linear(hidden_dims[1], latent_dim)
-        self.fc3_log_var = nn.Linear(hidden_dims[1], latent_dim)
+# class VAE(nn.Module):
+#     def __init__(self, input_dim, hidden_dims, latent_dim):
+#         super(VAE, self).__init__()
+#         self.fc1 = nn.Linear(input_dim, hidden_dims[0])
+#         self.fc2 = nn.Linear(hidden_dims[0], hidden_dims[1])
+#         self.fc3_mean = nn.Linear(hidden_dims[1], latent_dim)
+#         self.fc3_log_var = nn.Linear(hidden_dims[1], latent_dim)
+
+#     def encode(self, x):
+#         h = torch.relu(self.fc1(x))
+#         h = torch.relu(self.fc2(h))
+#         return self.fc3_mean(h), self.fc3_log_var(h)
+
+#     def reparameterize(self, mean, log_var):
+#         std = torch.exp(0.5 * log_var)
+#         eps = torch.randn_like(std)
+#         return mean + eps * std
+
+#     def forward(self, x):
+#         mean, log_var = self.encode(x)
+#         z = self.reparameterize(mean, log_var)
+#         return z, mean, log_var
+
+# class DeepDEP(nn.Module):
+#     def __init__(self, dims_mut, dims_exp, dims_cna, dims_meth, fprint_dim, dense_layer_dim):
+#         super(DeepDEP, self).__init__()
+#         self.vae_mut = VAE(dims_mut[0], [1000, 100], 50)
+#         self.vae_exp = VAE(dims_exp[0], [500, 200], 50)
+#         self.vae_cna = VAE(dims_cna[0], [500, 200], 50)
+#         self.vae_meth = VAE(dims_meth[0], [500, 200], 50)
+
+#         self.fc_gene1 = nn.Linear(fprint_dim, 1000)
+#         self.fc_gene2 = nn.Linear(1000, 100)
+#         self.fc_gene3 = nn.Linear(100, 50)
+
+#         self.fc_merged1 = nn.Linear(250, dense_layer_dim)
+#         self.fc_merged2 = nn.Linear(dense_layer_dim, dense_layer_dim)
+#         self.fc_out = nn.Linear(dense_layer_dim, 1)
+
+#     def forward(self, mut, exp, cna, meth, fprint):
+#         z_mut, _, _ = self.vae_mut(mut)
+#         z_exp, _, _ = self.vae_exp(exp)
+#         z_cna, _, _ = self.vae_cna(cna)
+#         z_meth, _, _ = self.vae_meth(meth)
+        
+#         gene = torch.relu(self.fc_gene1(fprint))
+#         gene = torch.relu(self.fc_gene2(gene))
+#         gene = torch.relu(self.fc_gene3(gene))
+        
+#         merged = torch.cat([z_mut, z_exp, z_cna, z_meth, gene], dim=1)
+#         merged = torch.relu(self.fc_merged1(merged))
+#         merged = torch.relu(self.fc_merged2(merged))
+#         output = self.fc_out(merged)
+#         return output
+
+class VariationalAutoencoder(nn.Module):
+    def __init__(self, input_dim, first_layer_dim, second_layer_dim, latent_dim):
+        super(VariationalAutoencoder, self).__init__()
+        self.fc1 = nn.Linear(input_dim, first_layer_dim)
+        self.fc2 = nn.Linear(first_layer_dim, second_layer_dim)
+        self.fc31 = nn.Linear(second_layer_dim, latent_dim)
+        self.fc32 = nn.Linear(second_layer_dim, latent_dim)
+        self.fc4 = nn.Linear(latent_dim, second_layer_dim)
+        self.fc5 = nn.Linear(second_layer_dim, first_layer_dim)
+        self.fc6 = nn.Linear(first_layer_dim, input_dim)
 
     def encode(self, x):
-        h = torch.relu(self.fc1(x))
-        h = torch.relu(self.fc2(h))
-        return self.fc3_mean(h), self.fc3_log_var(h)
+        h1 = torch.relu(self.fc1(x))
+        h2 = torch.relu(self.fc2(h1))
+        return self.fc31(h2), self.fc32(h2)
 
-    def reparameterize(self, mean, log_var):
-        std = torch.exp(0.5 * log_var)
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
-        return mean + eps * std
+        return mu + eps * std
+
+    def decode(self, z):
+        h3 = torch.relu(self.fc4(z))
+        h4 = torch.relu(self.fc5(h3))
+        return self.fc6(h4)
 
     def forward(self, x):
-        mean, log_var = self.encode(x)
-        z = self.reparameterize(mean, log_var)
-        return z, mean, log_var
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        recon_x = self.decode(z)
+        return recon_x, mu, logvar
 
 class DeepDEP(nn.Module):
     def __init__(self, dims_mut, dims_exp, dims_cna, dims_meth, fprint_dim, dense_layer_dim):
         super(DeepDEP, self).__init__()
-        self.vae_mut = VAE(dims_mut[0], [1000, 100], 50)
-        self.vae_exp = VAE(dims_exp[0], [500, 200], 50)
-        self.vae_cna = VAE(dims_cna[0], [500, 200], 50)
-        self.vae_meth = VAE(dims_meth[0], [500, 200], 50)
+        self.vae_mut = VariationalAutoencoder(dims_mut, 1000, 100, 50)
+        self.vae_exp = VariationalAutoencoder(dims_exp, 500, 200, 50)
+        self.vae_cna = VariationalAutoencoder(dims_cna, 500, 200, 50)
+        self.vae_meth = VariationalAutoencoder(dims_meth, 500, 200, 50)
 
-        self.fc_gene1 = nn.Linear(fprint_dim, 1000)
-        self.fc_gene2 = nn.Linear(1000, 100)
-        self.fc_gene3 = nn.Linear(100, 50)
+        self.vae_fprint = VariationalAutoencoder(fprint_dim, 1000, 200, 50)
 
         self.fc_merged1 = nn.Linear(250, dense_layer_dim)
         self.fc_merged2 = nn.Linear(dense_layer_dim, dense_layer_dim)
         self.fc_out = nn.Linear(dense_layer_dim, 1)
 
     def forward(self, mut, exp, cna, meth, fprint):
-        z_mut, _, _ = self.vae_mut(mut)
-        z_exp, _, _ = self.vae_exp(exp)
-        z_cna, _, _ = self.vae_cna(cna)
-        z_meth, _, _ = self.vae_meth(meth)
+        recon_mut, mu_mut, logvar_mut = self.vae_mut(mut)
+        recon_exp, mu_exp, logvar_exp = self.vae_exp(exp)
+        recon_cna, mu_cna, logvar_cna = self.vae_cna(cna)
+        recon_meth, mu_meth, logvar_meth = self.vae_meth(meth)
+        recon_fprint, mu_fprint, logvar_fprint = self.vae_fprint(fprint)
         
-        gene = torch.relu(self.fc_gene1(fprint))
-        gene = torch.relu(self.fc_gene2(gene))
-        gene = torch.relu(self.fc_gene3(gene))
-        
-        merged = torch.cat([z_mut, z_exp, z_cna, z_meth, gene], dim=1)
+        merged = torch.cat([mu_mut, mu_exp, mu_cna, mu_meth, mu_fprint], dim=1)
         merged = torch.relu(self.fc_merged1(merged))
         merged = torch.relu(self.fc_merged2(merged))
         output = self.fc_out(merged)
         return output
-
-class Sampling(nn.Module):
-    """Reparameterization trick by sampling from an isotropic unit Gaussian."""
-    def forward(self, z_mean, z_log_var):
-        epsilon = torch.randn_like(z_mean)
-        return z_mean + torch.exp(0.5 * z_log_var) * epsilon
 
 def load_data(filename):
     data = []
@@ -85,14 +141,14 @@ def load_data(filename):
     return data, data_labels, sample_names, gene_names
 
 if __name__ == '__main__':
-    model_name = "model_demo_vae"  # "model_paper"
+    model_name = "vae_model_demo"  # "model_paper"
     device = "mps"
     
     # Define the model architecture with correct dimensions
-    dims_mut = (4539,)  # Correct dimension based on the error message
-    dims_exp = (6016,)
-    dims_cna = (7460,)
-    dims_meth = (6617,)
+    dims_mut = 4539  # Correct dimension based on the error message
+    dims_exp = 6016
+    dims_cna = 7460
+    dims_meth = 6617
     fprint_dim = 3115  # Correct dimension based on the error message
     dense_layer_dim = 250
 
@@ -127,7 +183,7 @@ if __name__ == '__main__':
         
         data_pred[z] = np.transpose(data_pred_tmp)
         print("TCGA sample %d predicted..." % z)
-    
+
     # Write prediction results to txt
     data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
     data_pred_df.to_csv(f"results/predictions/tcga_predicted_data_{model_name}_demo.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')

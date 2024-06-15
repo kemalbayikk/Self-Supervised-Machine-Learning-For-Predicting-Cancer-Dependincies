@@ -6,6 +6,8 @@ import numpy as np
 import os
 import pickle
 import time
+import wandb
+from datetime import datetime
 
 def load_data(filename):
     data = []
@@ -52,12 +54,13 @@ class VariationalAutoencoder(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
-        return self.decode(z), mu, logvar
+        recon_x = self.decode(z)
+        return recon_x, mu, logvar
 
-def loss_function(recon_x, x, mu, logvar):
-    MSE = nn.functional.mse_loss(recon_x, x, reduction='mean')
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / x.size(0)
-    return MSE + KLD
+def vae_loss_function(recon_x, x, mu, logvar):
+    recon_loss = nn.functional.mse_loss(recon_x, x, reduction='sum')
+    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return recon_loss + kl_loss
 
 def save_weights_to_pickle(model, file_name):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
@@ -67,38 +70,53 @@ def save_weights_to_pickle(model, file_name):
     print(f"Model weights saved to {file_name}")
 
 if __name__ == '__main__':
+
+
+    omic = "mut"
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}")
+
+    config = wandb.config
+    config.learning_rate = 1e-4
+    config.batch_size = 64
+    config.epochs = 100
+    config.patience = 10
+    config.first_layer_dim = 1000
+    config.second_layer_dim = 100
+    config.latent_dim = 50
+
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-    filepath = "Data/TCGA/tcga_mut_data_paired_with_ccl.txt"
-    data_mut_tcga, sample_names_mut_tcga, gene_names_mut_tcga = load_data(filepath)
-    data_mut_tcga = data_mut_tcga.to(device)
+    filepath = f"Data/TCGA/tcga_{omic}_data_paired_with_ccl.txt"
+    data_tcga, sample_names_tcga, gene_names_tcga = load_data(filepath)
+    data_tcga = data_tcga.to(device)
+
+    config.input_dim = data_tcga.shape[1]
 
     # Split the data into training and validation sets
-    dataset = TensorDataset(data_mut_tcga)
+    dataset = TensorDataset(data_tcga)
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
-    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=False)
 
-    model = VariationalAutoencoder(input_dim=data_mut_tcga.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
+    model = VariationalAutoencoder(input_dim=data_tcga.shape[1], first_layer_dim=config.first_layer_dim, second_layer_dim=config.second_layer_dim, latent_dim=config.latent_dim)
     model.to(device)
-    optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
-    epochs = 100
-    patience = 10
     best_loss = float('inf')
     early_stop_counter = 0
 
     start_time = time.time()
-    for epoch in range(epochs):
+    for epoch in range(config.epochs):
         model.train()
         train_loss = 0
         for data in train_loader:
             inputs = data[0].to(device)
             optimizer.zero_grad()
             recon_batch, mu, logvar = model(inputs)
-            loss = loss_function(recon_batch, inputs, mu, logvar)
+            loss = vae_loss_function(recon_batch, inputs, mu, logvar)
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
@@ -110,26 +128,34 @@ if __name__ == '__main__':
             for data in val_loader:
                 inputs = data[0].to(device)
                 recon_batch, mu, logvar = model(inputs)
-                loss = loss_function(recon_batch, inputs, mu, logvar)
+                loss = vae_loss_function(recon_batch, inputs, mu, logvar)
                 val_loss += loss.item()
         val_loss /= len(val_loader.dataset)
 
-        print(f'Epoch [{epoch + 1}/{epochs}], Train Loss: {train_loss:.8f}, Validation Loss: {val_loss:.8f}')
+        wandb.log({
+            "train_loss": train_loss,
+            "val_loss": val_loss,
+            "learning_rate": config.learning_rate,
+            "batch_size": config.batch_size,
+            "epoch": epoch + 1
+        })
 
-        # # Early stopping
-        # if val_loss < best_loss:
-        #     best_loss = val_loss
-        #     early_stop_counter = 0
-        #     # Save the model's best weights
-        #     save_weights_to_pickle(model, './results/autoencoders/premodel_tcga_mut_vae_best.pickle')
-        # else:
-        #     early_stop_counter += 1
-        #     if early_stop_counter >= patience:
-        #         print(f'Early stopping at epoch {epoch + 1}')
-        #         break
+        print(f'Epoch [{epoch + 1}/{config.epochs}], Train Loss: {train_loss:.8f}, Validation Loss: {val_loss:.8f}')
+
+        # Early stopping
+        if val_loss < best_loss:
+            best_loss = val_loss
+            early_stop_counter = 0
+            # Save the model's best weights
+            save_weights_to_pickle(model, f'./results/autoencoders/premodel_tcga_{omic}_vae_best.pickle')
+        else:
+            early_stop_counter += 1
+            if early_stop_counter >= config.patience:
+                print(f'Early stopping at epoch {epoch + 1}')
+                break
 
     print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 
-    model_save_name = 'premodel_tcga_mut_vae_500_200_50.pickle'
+    model_save_name = f'premodel_tcga_{omic}_vae_500_200_50.pickle'
     save_weights_to_pickle(model, './results/autoencoders/' + model_save_name)
     print("\nResults saved in /results/autoencoders/%s\n\n" % model_save_name)
