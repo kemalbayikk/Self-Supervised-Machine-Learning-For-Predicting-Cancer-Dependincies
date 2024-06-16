@@ -1,0 +1,485 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 1/100:  98%|████████████████████████████████████████████▏| 57/58 [11:30<00:12, 12.07s/it]
+Epoch 1, Train Loss: 0.18496158539221205
+Test Loss: 0.13214093993107479
+Pearson Correlation: 0.5663879683491424
+Model saved
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 2/100:  98%|████████████████████████████████████████████▏| 57/58 [11:32<00:12, 12.33s/it]
+
+Epoch 2, Train Loss: 0.08530160720492232
+Epoch 3/100:   0%|                                                      | 0/58 [00:00<?, ?it/s]
+Test Loss: 0.057847050577402116
+Pearson Correlation: 0.8399969688663159
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 3/100:  98%|████████████████████████████████████████████▏| 57/58 [11:02<00:12, 12.21s/it]
+Epoch 3, Train Loss: 0.05178478045453285
+Test Loss: 0.05021317799886068
+Pearson Correlation: 0.8637932607866042
+Model saved
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 4/100:  98%|████████████████████████████████████████████▏| 57/58 [11:39<00:12, 12.22s/it]
+Epoch 4, Train Loss: 0.04803409735704291
+Test Loss: 0.04783656001091004
+Pearson Correlation: 0.8687691233890339
+Model saved
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 5/100:  98%|████████████████████████████████████████████▏| 57/58 [11:37<00:12, 12.03s/it]
+
+Epoch 5, Train Loss: 0.046775031385236775
+Epoch 6/100:   0%|                                                      | 0/58 [00:00<?, ?it/s]
+Test Loss: 0.04708425303300222
+Pearson Correlation: 0.8710516031662661
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 6/100:  98%|████████████████████████████████████████████▏| 57/58 [11:38<00:12, 12.29s/it]
+Epoch 6, Train Loss: 0.04631824881352227
+Test Loss: 0.04675647293527921
+Pearson Correlation: 0.8726635540492852
+Epoch 7/100:   0%|                                                      | 0/58 [00:00<?, ?it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 7/100:  98%|████████████████████████████████████████████▏| 57/58 [12:00<00:12, 12.29s/it]
+
+Epoch 7, Train Loss: 0.045688480781070115
+Test Loss: 0.04641478459040324
+Pearson Correlation: 0.8736152188029745
+Model saved
+
+
+
+
+
+
+
+
+
+
+
+
+
+Traceback (most recent call last):
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Variational_autoencoder/train_neural_network.py", line 265, in <module>
+    best_model_state_dict = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Variational_autoencoder/train_neural_network.py", line 105, in train_model
+    for batch in progress_bar:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/tqdm/std.py", line 1182, in __iter__
+    for obj in iterable:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 631, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 675, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/utils/data/_utils/fetch.py", line 54, in fetch
+    return self.collate_fn(data)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 316, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 173, in collate
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 141, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 213, in collate_tensor_fn
+    return torch.stack(batch, 0, out=out)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

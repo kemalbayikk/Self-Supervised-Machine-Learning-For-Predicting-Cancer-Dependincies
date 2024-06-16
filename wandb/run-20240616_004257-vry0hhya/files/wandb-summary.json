@@ -1,0 +1,1 @@
+{"train_loss": 0.045688480781070115, "test_loss": 0.04641478459040324, "pearson_correlation": 0.8736152188029745, "learning_rate": 0.0001, "batch_size": 5000, "epoch": 7, "_timestamp": 1718501209.292316, "_runtime": 6231.363898038864, "_step": 6, "_wandb": {"runtime": 6400}}

@@ -1,0 +1,1 @@
+{"train_loss": 19.982261372677968, "test_loss": 19.93945599370055, "_timestamp": 1718480401.4973052, "_runtime": 2974.467891216278, "_step": 100, "learning_rate": 0.0001, "batch_size": 512, "epoch": 100, "_wandb": {"runtime": 2973}}

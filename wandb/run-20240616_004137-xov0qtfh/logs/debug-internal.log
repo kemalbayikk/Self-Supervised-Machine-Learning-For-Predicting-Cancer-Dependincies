@@ -1,0 +1,156 @@
+2024-06-16 00:41:37,628 INFO    StreamThr :68467 [internal.py:wandb_internal():86] W&B internal server running at pid: 68467, started at: 2024-06-16 00:41:37.627917
+2024-06-16 00:41:37,629 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: status
+2024-06-16 00:41:37,635 INFO    WriterThread:68467 [datastore.py:open_for_write():87] open: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/run-xov0qtfh.wandb
+2024-06-16 00:41:37,635 DEBUG   SenderThread:68467 [sender.py:send():378] send: header
+2024-06-16 00:41:37,660 DEBUG   SenderThread:68467 [sender.py:send():378] send: run
+2024-06-16 00:41:37,982 INFO    SenderThread:68467 [dir_watcher.py:__init__():211] watching files in: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/files
+2024-06-16 00:41:37,983 INFO    SenderThread:68467 [sender.py:_start_run_threads():1099] run started: xov0qtfh with start time 1718494897.628749
+2024-06-16 00:41:37,988 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: check_version
+2024-06-16 00:41:37,989 DEBUG   SenderThread:68467 [sender.py:send_request():405] send_request: check_version
+2024-06-16 00:41:38,057 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: run_start
+2024-06-16 00:41:38,063 DEBUG   HandlerThread:68467 [system_info.py:__init__():26] System info init
+2024-06-16 00:41:38,063 DEBUG   HandlerThread:68467 [system_info.py:__init__():41] System info init done
+2024-06-16 00:41:38,063 INFO    HandlerThread:68467 [system_monitor.py:start():194] Starting system monitor
+2024-06-16 00:41:38,063 INFO    SystemMonitor:68467 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2024-06-16 00:41:38,064 INFO    HandlerThread:68467 [system_monitor.py:probe():214] Collecting system info
+2024-06-16 00:41:38,064 INFO    SystemMonitor:68467 [interfaces.py:start():190] Started cpu monitoring
+2024-06-16 00:41:38,065 DEBUG   HandlerThread:68467 [system_info.py:probe():150] Probing system
+2024-06-16 00:41:38,065 INFO    SystemMonitor:68467 [interfaces.py:start():190] Started disk monitoring
+2024-06-16 00:41:38,067 INFO    SystemMonitor:68467 [interfaces.py:start():190] Started gpuapple monitoring
+2024-06-16 00:41:38,068 INFO    SystemMonitor:68467 [interfaces.py:start():190] Started memory monitoring
+2024-06-16 00:41:38,069 INFO    SystemMonitor:68467 [interfaces.py:start():190] Started network monitoring
+2024-06-16 00:41:38,073 DEBUG   HandlerThread:68467 [system_info.py:_probe_git():135] Probing git
+2024-06-16 00:41:38,100 DEBUG   HandlerThread:68467 [system_info.py:_probe_git():143] Probing git done
+2024-06-16 00:41:38,100 DEBUG   HandlerThread:68467 [system_info.py:probe():198] Probing system done
+2024-06-16 00:41:38,100 DEBUG   HandlerThread:68467 [system_monitor.py:probe():223] {'os': 'macOS-14.5-arm64-arm-64bit', 'python': '3.12.1', 'heartbeatAt': '2024-06-15T23:41:38.065978', 'startedAt': '2024-06-15T23:41:37.608519', 'docker': None, 'cuda': None, 'args': (), 'state': 'running', 'program': '/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Variational_autoencoder/train_neural_network.py', 'codePathLocal': 'Pytorch_codes/Variational_autoencoder/train_neural_network.py', 'codePath': 'Pytorch_codes/Variational_autoencoder/train_neural_network.py', 'git': {'remote': 'https://github.com/kemalbayikk/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies.git', 'commit': 'a8386c9c54c7cff90ad2b394da7f2f10623a8e7f'}, 'email': '45203337+kemalbayikk@users.noreply.github.com', 'root': '/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies', 'host': 'Kemal-MacBook-Pro.local', 'username': 'kemalbayik', 'executable': '/usr/local/bin/python3', 'cpu_count': 10, 'cpu_count_logical': 10, 'cpu_freq': {'current': 3228, 'min': 600, 'max': 3228}, 'cpu_freq_per_core': [{'current': 3228, 'min': 600, 'max': 3228}], 'disk': {'/': {'total': 460.4317207336426, 'used': 9.558723449707031}}, 'gpuapple': {'type': 'arm', 'vendor': 'Apple'}, 'memory': {'total': 32.0}}
+2024-06-16 00:41:38,100 INFO    HandlerThread:68467 [system_monitor.py:probe():224] Finished collecting system info
+2024-06-16 00:41:38,100 INFO    HandlerThread:68467 [system_monitor.py:probe():227] Publishing system info
+2024-06-16 00:41:38,101 INFO    HandlerThread:68467 [system_monitor.py:probe():229] Finished publishing system info
+2024-06-16 00:41:38,107 DEBUG   SenderThread:68467 [sender.py:send():378] send: files
+2024-06-16 00:41:38,108 INFO    SenderThread:68467 [sender.py:_save_file():1365] saving file wandb-metadata.json with policy now
+2024-06-16 00:41:38,219 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: python_packages
+2024-06-16 00:41:38,220 DEBUG   SenderThread:68467 [sender.py:send_request():405] send_request: python_packages
+2024-06-16 00:41:38,221 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: stop_status
+2024-06-16 00:41:38,221 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: internal_messages
+2024-06-16 00:41:38,221 DEBUG   SenderThread:68467 [sender.py:send_request():405] send_request: stop_status
+2024-06-16 00:41:38,474 DEBUG   SenderThread:68467 [sender.py:send():378] send: telemetry
+2024-06-16 00:41:38,474 DEBUG   SenderThread:68467 [sender.py:send():378] send: telemetry
+2024-06-16 00:41:38,474 DEBUG   SenderThread:68467 [sender.py:send():378] send: config
+2024-06-16 00:41:38,475 DEBUG   SenderThread:68467 [sender.py:send():378] send: config
+2024-06-16 00:41:38,475 DEBUG   SenderThread:68467 [sender.py:send():378] send: config
+2024-06-16 00:41:38,475 DEBUG   SenderThread:68467 [sender.py:send():378] send: config
+2024-06-16 00:41:38,616 INFO    wandb-upload_0:68467 [upload_job.py:push():131] Uploaded file /var/folders/_h/d42828qn2n327gv_5q5yygt40000gn/T/tmpg9x_1cljwandb/4zzecvhd-wandb-metadata.json
+2024-06-16 00:41:38,984 INFO    Thread-12 :68467 [dir_watcher.py:_on_file_created():271] file/dir created: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/files/requirements.txt
+2024-06-16 00:41:38,984 INFO    Thread-12 :68467 [dir_watcher.py:_on_file_created():271] file/dir created: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/files/wandb-metadata.json
+2024-06-16 00:41:43,501 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: status_report
+2024-06-16 00:41:48,528 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: status_report
+2024-06-16 00:41:50,863 DEBUG   SenderThread:68467 [sender.py:send():378] send: telemetry
+2024-06-16 00:41:50,945 DEBUG   SenderThread:68467 [sender.py:send():378] send: telemetry
+2024-06-16 00:41:52,052 INFO    Thread-12 :68467 [dir_watcher.py:_on_file_created():271] file/dir created: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/files/output.log
+2024-06-16 00:41:53,221 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: internal_messages
+2024-06-16 00:41:53,226 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: stop_status
+2024-06-16 00:41:53,226 DEBUG   SenderThread:68467 [sender.py:send_request():405] send_request: stop_status
+2024-06-16 00:41:54,063 INFO    Thread-12 :68467 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/files/output.log
+2024-06-16 00:41:54,406 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: status_report
+2024-06-16 00:41:59,422 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: status_report
+2024-06-16 00:42:04,442 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: status_report
+2024-06-16 00:42:07,516 ERROR   FileStreamThread:68467 [file_stream.py:_handle_response():504] dropped chunk 404 Client Error: Not Found for url: https://api.wandb.ai/files/kemal-bayik/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies/xov0qtfh/file_stream
+NoneType: None
+2024-06-16 00:42:08,116 INFO    Thread-12 :68467 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/files/output.log
+2024-06-16 00:42:08,225 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: internal_messages
+2024-06-16 00:42:08,228 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: stop_status
+2024-06-16 00:42:08,228 DEBUG   SenderThread:68467 [sender.py:send_request():405] send_request: stop_status
+2024-06-16 00:42:09,470 DEBUG   HandlerThread:68467 [handler.py:handle_request():146] handle_request: status_report
+2024-06-16 00:42:09,596 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:42:09,596 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:42:10,779 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:42:10,780 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:42:13,343 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:42:13,347 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:42:13,348 INFO    SenderThread:68467 [retry.py:__call__():172] Retry attempt failed:
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/internal_api.py", line 369, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/lib/gql_request.py", line 59, in execute
+    request.raise_for_status()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 409 Client Error: Conflict for url: https://api.wandb.ai/graphql
+2024-06-16 00:42:18,497 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:42:18,498 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:42:28,477 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:42:28,478 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:42:38,074 DEBUG   SystemMonitor:68467 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2024-06-16 00:42:45,989 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:42:45,995 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:43:22,013 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:43:22,013 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:44:36,542 ERROR   SenderThread:68467 [internal_api.py:execute():373] 409 response executing GraphQL.
+2024-06-16 00:44:36,542 ERROR   SenderThread:68467 [internal_api.py:execute():374] {"errors":[{"message":"run xov0qtfh was previously created and deleted; try a new run name","path":["upsertBucket"]}],"data":{"upsertBucket":null}}
+2024-06-16 00:44:37,189 INFO    HandlerThread:68467 [handler.py:finish():869] shutting down handler
+2024-06-16 00:44:37,190 INFO    WriterThread:68467 [datastore.py:close():296] close: /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_004137-xov0qtfh/run-xov0qtfh.wandb
+2024-06-16 00:44:37,192 INFO    HandlerThread:68467 [system_monitor.py:finish():203] Stopping system monitor
+2024-06-16 00:44:37,193 DEBUG   SystemMonitor:68467 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2024-06-16 00:44:37,193 DEBUG   SystemMonitor:68467 [system_monitor.py:_start():183] Publishing last batch of metrics
+2024-06-16 00:44:37,193 INFO    HandlerThread:68467 [interfaces.py:finish():202] Joined cpu monitor
+2024-06-16 00:44:37,194 INFO    HandlerThread:68467 [interfaces.py:finish():202] Joined disk monitor
+2024-06-16 00:44:37,194 INFO    HandlerThread:68467 [interfaces.py:finish():202] Joined gpuapple monitor
+2024-06-16 00:44:37,194 INFO    HandlerThread:68467 [interfaces.py:finish():202] Joined memory monitor
+2024-06-16 00:44:37,194 INFO    HandlerThread:68467 [interfaces.py:finish():202] Joined network monitor
+2024-06-16 00:44:37,194 ERROR   StreamThr :68467 [internal.py:wandb_internal():174] Thread SenderThread:
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/internal_api.py", line 2216, in upsert_run
+    response = self.gql(
+               ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/internal_api.py", line 341, in gql
+    ret = self._retry_gql(
+          ^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/internal_api.py", line 369, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/lib/gql_request.py", line 59, in execute
+    request.raise_for_status()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 409 Client Error: Conflict for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/internal_util.py", line 49, in run
+    self._run()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/internal_util.py", line 93, in _run
+    self._debounce()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/internal.py", line 334, in _debounce
+    self._sm.debounce()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/sender.py", line 536, in debounce
+    self._maybe_update_config(always=final)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/sender.py", line 513, in _maybe_update_config
+    self._debounce_config()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/sdk/internal/sender.py", line 542, in _debounce_config
+    self._api.upsert_run(
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/wandb/apis/normalize.py", line 51, in wrapper
+    raise CommError(message, error)
+wandb.errors.CommError: run xov0qtfh was previously created and deleted; try a new run name (Error 409: Conflict)
