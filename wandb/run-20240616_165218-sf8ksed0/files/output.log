@@ -1,0 +1,16 @@
+
+Training started...
+Traceback (most recent call last):
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 256, in <module>
+    best_model_state_dict = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 144, in train_model
+    loss = total_loss_function(outputs, targets, mask_mut)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 87, in total_loss_function
+    recon_loss_exp = masked_autoencoder_loss_function(recon_exp, exp, mask)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 44, in masked_autoencoder_loss_function
+    masked_recon_x = recon_x * (1 - mask)  # Sadece maskelenmiş kısımları hesaba kat
+                     ~~~~~~~~^~~~~~~~~~~~
+RuntimeError: The size of tensor a (6016) must match the size of tensor b (4539) at non-singleton dimension 1

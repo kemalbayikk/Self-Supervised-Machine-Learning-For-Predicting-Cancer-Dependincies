@@ -1,0 +1,28 @@
+Epoch [1/100], Train Loss: 0.00050093, Validation Loss: 0.00026023
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [2/100], Train Loss: 0.00019846, Validation Loss: 0.00017045
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [3/100], Train Loss: 0.00013757, Validation Loss: 0.00013547
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [4/100], Train Loss: 0.00011586, Validation Loss: 0.00011591
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [5/100], Train Loss: 0.00009847, Validation Loss: 0.00010183
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [6/100], Train Loss: 0.00009058, Validation Loss: 0.00009709
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [7/100], Train Loss: 0.00008514, Validation Loss: 0.00009494
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [8/100], Train Loss: 0.00008172, Validation Loss: 0.00009069
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [9/100], Train Loss: 0.00007870, Validation Loss: 0.00008771
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Epoch [10/100], Train Loss: 0.00007480, Validation Loss: 0.00008333
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle
+Traceback (most recent call last):
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/Unsupervised_pretraining_masked_autoencoders.py", line 117, in <module>
+    mask = generate_mask(inputs.shape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/Unsupervised_pretraining_masked_autoencoders.py", line 70, in generate_mask
+    indices = np.random.choice(shape[1], num_masked, replace=False)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

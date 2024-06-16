@@ -1,0 +1,49 @@
+{
+    "os": "macOS-14.5-arm64-arm-64bit",
+    "python": "3.12.1",
+    "heartbeatAt": "2024-06-16T16:23:48.475419",
+    "startedAt": "2024-06-16T16:23:47.943655",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py",
+    "codePathLocal": "Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py",
+    "codePath": "Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py",
+    "git": {
+        "remote": "https://github.com/kemalbayikk/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies.git",
+        "commit": "a709e982b6f78bcbda9dc725b3f8b348638eaae7"
+    },
+    "email": "45203337+kemalbayikk@users.noreply.github.com",
+    "root": "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies",
+    "host": "Kemal-MacBook-Pro.local",
+    "username": "kemalbayik",
+    "executable": "/usr/local/bin/python3",
+    "cpu_count": 10,
+    "cpu_count_logical": 10,
+    "cpu_freq": {
+        "current": 3228,
+        "min": 600,
+        "max": 3228
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3228,
+            "min": 600,
+            "max": 3228
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 460.4317207336426,
+            "used": 9.558723449707031
+        }
+    },
+    "gpuapple": {
+        "type": "arm",
+        "vendor": "Apple"
+    },
+    "memory": {
+        "total": 32.0
+    }
+}

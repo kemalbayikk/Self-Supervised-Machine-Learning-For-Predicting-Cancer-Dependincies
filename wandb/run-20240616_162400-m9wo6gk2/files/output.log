@@ -1,0 +1,43 @@
+Epoch [1/100], Train Loss: 0.00022266, Validation Loss: 0.00021406
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [2/100], Train Loss: 0.00021032, Validation Loss: 0.00021296
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [3/100], Train Loss: 0.00020923, Validation Loss: 0.00021230
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [4/100], Train Loss: 0.00020840, Validation Loss: 0.00021160
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [5/100], Train Loss: 0.00020727, Validation Loss: 0.00021057
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [6/100], Train Loss: 0.00020643, Validation Loss: 0.00021054
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [7/100], Train Loss: 0.00020572, Validation Loss: 0.00021003
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [8/100], Train Loss: 0.00020503, Validation Loss: 0.00020984
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [9/100], Train Loss: 0.00020419, Validation Loss: 0.00020969
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [10/100], Train Loss: 0.00020363, Validation Loss: 0.00020944
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [11/100], Train Loss: 0.00020262, Validation Loss: 0.00020940
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [12/100], Train Loss: 0.00020173, Validation Loss: 0.00020921
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [13/100], Train Loss: 0.00020149, Validation Loss: 0.00020914
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [14/100], Train Loss: 0.00019995, Validation Loss: 0.00020943
+Epoch [15/100], Train Loss: 0.00019890, Validation Loss: 0.00020893
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle
+Epoch [16/100], Train Loss: 0.00019781, Validation Loss: 0.00020940
+Epoch [17/100], Train Loss: 0.00019682, Validation Loss: 0.00020914
+Epoch [18/100], Train Loss: 0.00019552, Validation Loss: 0.00020917
+Epoch [19/100], Train Loss: 0.00019409, Validation Loss: 0.00020959
+Epoch [20/100], Train Loss: 0.00019291, Validation Loss: 0.00020974
+Epoch [21/100], Train Loss: 0.00019147, Validation Loss: 0.00020929
+Epoch [22/100], Train Loss: 0.00019041, Validation Loss: 0.00020942
+Epoch [23/100], Train Loss: 0.00018887, Validation Loss: 0.00020973
+Epoch [24/100], Train Loss: 0.00018758, Validation Loss: 0.00021010
+Epoch [25/100], Train Loss: 0.00018621, Validation Loss: 0.00020998
+Early stopping at epoch 25
+Masked Autoencoder training completed in 0.8 mins
+Model weights saved to ./results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder.pickle
+Results saved in /results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder.pickle

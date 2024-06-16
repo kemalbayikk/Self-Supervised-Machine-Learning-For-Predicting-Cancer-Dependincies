@@ -1,0 +1,28 @@
+
+Training started...
+Traceback (most recent call last):
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 241, in <module>
+    best_model_state_dict = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 132, in train_model
+    outputs = model(*inputs, mask)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 65, in forward
+    recon_exp = self.mae_exp(exp, mask)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 38, in forward
+    masked_x = x * mask
+               ~~^~~~~~
+RuntimeError: The size of tensor a (6016) must match the size of tensor b (4539) at non-singleton dimension 1

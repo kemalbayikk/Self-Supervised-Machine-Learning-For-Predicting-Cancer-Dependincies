@@ -1,0 +1,44 @@
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_setup.py:_flush():76] Current SDK version is 0.16.4
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_setup.py:_flush():76] Configure stats pid to 92339
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_setup.py:_flush():76] Loading settings from /Users/kemalbayik/.config/wandb/settings
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_setup.py:_flush():76] Loading settings from /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/settings
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'Pytorch_codes/Masked_autoencoder/Unsupervised_pretraining_masked_autoencoders.py', 'program_abspath': '/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/Unsupervised_pretraining_masked_autoencoders.py', 'program': '/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/Unsupervised_pretraining_masked_autoencoders.py'}
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_init.py:_log_setup():526] Logging user logs to /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_162845-4dfk5gal/logs/debug.log
+2024-06-16 16:28:45,472 INFO    MainThread:92339 [wandb_init.py:_log_setup():527] Logging internal logs to /Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/wandb/run-20240616_162845-4dfk5gal/logs/debug-internal.log
+2024-06-16 16:28:45,473 INFO    MainThread:92339 [wandb_init.py:init():566] calling init triggers
+2024-06-16 16:28:45,473 INFO    MainThread:92339 [wandb_init.py:init():573] wandb.init called with sweep_config: {}
+config: {}
+2024-06-16 16:28:45,473 INFO    MainThread:92339 [wandb_init.py:init():616] starting backend
+2024-06-16 16:28:45,473 INFO    MainThread:92339 [wandb_init.py:init():620] setting up manager
+2024-06-16 16:28:45,475 INFO    MainThread:92339 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=spawn,fork,forkserver, using: spawn
+2024-06-16 16:28:45,476 INFO    MainThread:92339 [wandb_init.py:init():628] backend started and connected
+2024-06-16 16:28:45,484 INFO    MainThread:92339 [wandb_init.py:init():720] updated telemetry
+2024-06-16 16:28:45,502 INFO    MainThread:92339 [wandb_init.py:init():753] communicating run to backend with 90.0 second timeout
+2024-06-16 16:28:45,895 INFO    MainThread:92339 [wandb_run.py:_on_init():2262] communicating current version
+2024-06-16 16:28:45,970 INFO    MainThread:92339 [wandb_run.py:_on_init():2271] got version response upgrade_message: "wandb version 0.17.1 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2024-06-16 16:28:45,970 INFO    MainThread:92339 [wandb_init.py:init():804] starting run threads in backend
+2024-06-16 16:28:46,088 INFO    MainThread:92339 [wandb_run.py:_console_start():2241] atexit reg
+2024-06-16 16:28:46,088 INFO    MainThread:92339 [wandb_run.py:_redirect():2096] redirect: wrap_raw
+2024-06-16 16:28:46,088 INFO    MainThread:92339 [wandb_run.py:_redirect():2161] Wrapping output streams.
+2024-06-16 16:28:46,088 INFO    MainThread:92339 [wandb_run.py:_redirect():2186] Redirects installed.
+2024-06-16 16:28:46,088 INFO    MainThread:92339 [wandb_init.py:init():847] run started, returning control to user process
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set learning_rate = 0.0001 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb learning_rate 0.0001 None
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set batch_size = 64 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb batch_size 64 None
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set epochs = 100 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb epochs 100 None
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set patience = 5 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb patience 5 None
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set first_layer_dim = 500 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb first_layer_dim 500 None
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set second_layer_dim = 200 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb second_layer_dim 200 None
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set latent_dim = 50 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:46,089 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb latent_dim 50 None
+2024-06-16 16:28:53,097 INFO    MainThread:92339 [wandb_config.py:__setitem__():151] config set input_dim = 7460 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x13c825730>>
+2024-06-16 16:28:53,097 INFO    MainThread:92339 [wandb_run.py:_config_callback():1343] config_cb input_dim 7460 None
+2024-06-16 16:32:14,227 WARNING MsgRouterThr:92339 [router.py:message_loop():77] message_loop has been closed

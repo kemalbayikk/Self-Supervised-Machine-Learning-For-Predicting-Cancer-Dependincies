@@ -1,0 +1,1 @@
+{"train_loss": 3.1302196186739664e-05, "val_loss": 3.3429986641864354e-05, "learning_rate": 0.0001, "batch_size": 64, "epoch": 100, "_timestamp": 1718551926.812149, "_runtime": 201.33577013015747, "_step": 99, "_wandb": {"runtime": 200}}

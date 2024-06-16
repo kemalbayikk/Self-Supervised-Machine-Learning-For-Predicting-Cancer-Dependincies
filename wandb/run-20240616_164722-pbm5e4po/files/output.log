@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 216, in <module>
+    premodel_mut = load_pretrained_mae('../results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder.pickle', *dims_mut)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kemalbayik/Library/CloudStorage/OneDrive-UniversityofSussex/MSc Project/Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependincies/Pytorch_codes/Masked_autoencoder/DeepDep_masked_autoencoder.py", line 89, in load_pretrained_mae
+    mae_state = pickle.load(open(filepath, 'rb'))
+                            ^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '../results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder.pickle'
