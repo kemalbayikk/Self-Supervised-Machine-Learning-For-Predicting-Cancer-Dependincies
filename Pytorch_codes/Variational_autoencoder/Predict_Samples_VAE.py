@@ -7,6 +7,7 @@ import time
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from sklearn.metrics import mean_squared_error
+import seaborn as sns
 
 # class VAE(nn.Module):
 #     def __init__(self, input_dim, hidden_dims, latent_dim):
@@ -103,7 +104,7 @@ class DeepDEP(nn.Module):
         self.vae_cna = VariationalAutoencoder(dims_cna, 500, 200, 50)
         self.vae_meth = VariationalAutoencoder(dims_meth, 500, 200, 50)
 
-        self.vae_fprint = VariationalAutoencoder(fprint_dim, 1000, 200, 50)
+        self.vae_fprint = VariationalAutoencoder(fprint_dim, 1000, 100, 50)
 
         self.fc_merged1 = nn.Linear(250, dense_layer_dim)
         self.fc_merged2 = nn.Linear(dense_layer_dim, dense_layer_dim)
@@ -140,8 +141,21 @@ def load_data(filename):
 
     return data, data_labels, sample_names, gene_names
 
+def plot_density(y_true_train, y_pred_train, y_pred_test, batch_size, learning_rate, epochs):
+    plt.figure(figsize=(8, 6))
+    sns.kdeplot(y_true_train, label='CCL original', color='blue')
+    sns.kdeplot(y_pred_train, label='CCL predicted', color='orange')
+    sns.kdeplot(y_pred_test, label='Tumor predicted', color='brown')
+    plt.xlabel('Dependency score')
+    plt.ylabel('Density (x0.01)')
+    plt.title(f'Density plot of Dependency Scores\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs} VAE')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f'results/predictions/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
+    plt.show()
+
 if __name__ == '__main__':
-    model_name = "vae_model_demo"  # "model_paper"
+    model_name = "vae_model"  # "model_paper"
     device = "mps"
     
     # Define the model architecture with correct dimensions
@@ -166,7 +180,7 @@ if __name__ == '__main__':
     data_fprint_1298DepOIs, data_labels_fprint, gene_names_fprint, function_names_fprint = load_data("Data/crispr_gene_fingerprint_cgp.txt")
     print("\n\nDatasets successfully loaded.\n\n")
 
-    batch_size = 500
+    batch_size = 512
     first_to_predict = 10
     data_pred = np.zeros((first_to_predict, data_fprint_1298DepOIs.shape[0]))
     
@@ -183,6 +197,11 @@ if __name__ == '__main__':
         
         data_pred[z] = np.transpose(data_pred_tmp)
         print("TCGA sample %d predicted..." % z)
+
+    y_true_train = np.loadtxt('results/predictions/y_true_train_CCL_VAE.txt', dtype=float)
+    y_pred_train = np.loadtxt('results/predictions/y_pred_train_CCL_VAE.txt', dtype=float)
+
+    plot_density(y_true_train[0:first_to_predict].flatten(),y_pred_train[0:first_to_predict].flatten(),data_pred.flatten(),5000,0.0001,10)
 
     # Write prediction results to txt
     data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])

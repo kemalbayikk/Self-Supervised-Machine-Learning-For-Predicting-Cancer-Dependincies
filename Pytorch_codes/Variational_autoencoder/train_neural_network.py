@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-# device = "cuda"
+#device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = "cuda"
 print(device)
 
 class VariationalAutoencoder(nn.Module):
@@ -99,6 +99,9 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
         if early_stop:
             break
 
+        training_predictions = []
+        training_targets_list = []
+
         model.train()
         running_loss = 0.0
         progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{num_epoch}", leave=False)
@@ -113,6 +116,9 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             optimizer.step()
 
             running_loss += loss.item()
+
+            training_predictions.extend(outputs.detach().cpu().numpy())
+            training_targets_list.extend(targets.detach().cpu().numpy())
 
         train_loss = running_loss / len(train_loader)
         print(f"Epoch {epoch+1}, Train Loss: {train_loss}")
@@ -161,7 +167,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
                 print("Early stopping")
                 early_stop = True
 
-    return best_model_state_dict
+    return best_model_state_dict, training_predictions, training_targets_list
 
 def plot_density(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, learning_rate, epochs):
     plt.figure(figsize=(8, 6))
@@ -187,7 +193,9 @@ def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_siz
     plt.plot(np.unique(y_pred_train), poly1d_fn_train(np.unique(y_pred_train)), color='red')
     plt.xlabel('DeepDEP-predicted score')
     plt.ylabel('Original dependency score')
-    plt.title(f'Training/validation\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs} VAE')
+    plt.title(f'Training/validation\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs}, VAE')
+    plt.xlim(-4, 5)
+    plt.ylim(-4, 5)
     pearson_corr_train, _ = pearsonr(y_pred_train, y_true_train)
     mse_train = mean_squared_error(y_true_train, y_pred_train)
     plt.text(0.1, 0.9, f'$\\rho$ = {pearson_corr_train:.2f}\nMSE = {mse_train:.3f}', transform=plt.gca().transAxes)
@@ -201,7 +209,9 @@ def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_siz
     plt.plot(np.unique(y_pred_test), poly1d_fn_test(np.unique(y_pred_test)), color='red')
     plt.xlabel('DeepDEP-predicted score')
     plt.ylabel('Original dependency score')
-    plt.title(f'Testing\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs} VAE')
+    plt.title(f'Testing\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs}, VAE')
+    plt.xlim(-4, 5)
+    plt.ylim(-4, 5)
     pearson_corr_test, _ = pearsonr(y_pred_test, y_true_test)
     mse_test = mean_squared_error(y_true_test, y_pred_test)
     plt.text(0.1, 0.9, f'$\\rho$ = {pearson_corr_test:.2f}\nMSE = {mse_test:.3f}', transform=plt.gca().transAxes)
@@ -257,12 +267,15 @@ if __name__ == '__main__':
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
+    print("Train size : ", train_size)
+    print("Test size : ", test_size)
+
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
 
     # Create the DeepDEP model using the pretrained VAE models
     model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 250)
-    best_model_state_dict = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
+    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
 
     # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
     model.load_state_dict(best_model_state_dict)
@@ -287,16 +300,19 @@ if __name__ == '__main__':
     })
 
     # Save the best model
-    torch.save(best_model_state_dict, 'vae_model.pth')
+    torch.save(best_model_state_dict, 'results/models/vae_model_last.pth')
     
     # Plot results
-    y_true_train = np.array(targets_list[:len(targets_list) // 2]).flatten()
-    y_pred_train = np.array(predictions[:len(predictions) // 2]).flatten()
-    y_true_test = np.array(targets_list[len(targets_list) // 2:]).flatten()
-    y_pred_test = np.array(predictions[len(predictions) // 2:]).flatten()
+    y_true_train = np.array(training_targets_list).flatten()
+    y_pred_train = np.array(training_predictions).flatten()
+    y_true_test = np.array(targets_list).flatten()
+    y_pred_test = np.array(predictions).flatten()
+
+    np.savetxt(f'results/predictions/y_true_train_CCL_VAE.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_train_CCL_VAE.txt', y_pred_train, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
 
     plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
-    plot_density(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
+    #plot_density(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)

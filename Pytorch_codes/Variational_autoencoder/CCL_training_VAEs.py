@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
         # Split the data into training and validation sets
         dataset = TensorDataset(tensor_data_ccl)
-        train_size = int(0.8 * len(dataset))
+        train_size = int(0.9 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
