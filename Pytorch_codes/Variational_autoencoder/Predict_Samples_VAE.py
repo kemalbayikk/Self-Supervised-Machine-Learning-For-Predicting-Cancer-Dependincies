@@ -154,8 +154,47 @@ def plot_density(y_true_train, y_pred_train, y_pred_test, batch_size, learning_r
     plt.savefig(f'results/predictions/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
     plt.show()
 
+def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, learning_rate, epochs):
+    plt.figure(figsize=(14, 6))
+
+    # Training/validation plot
+    plt.subplot(1, 2, 1)
+    plt.scatter(y_pred_train, y_true_train, alpha=0.5)
+    coef_train = np.polyfit(y_pred_train, y_true_train, 1)
+    poly1d_fn_train = np.poly1d(coef_train)
+    plt.plot(np.unique(y_pred_train), poly1d_fn_train(np.unique(y_pred_train)), color='red')
+    plt.xlabel('DeepDEP-predicted score')
+    plt.ylabel('Original dependency score')
+    plt.title(f'Training/validation\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs}, VAE')
+    plt.xlim(-4, 5)
+    plt.ylim(-4, 5)
+    pearson_corr_train, _ = pearsonr(y_pred_train, y_true_train)
+    mse_train = mean_squared_error(y_true_train, y_pred_train)
+    plt.text(0.1, 0.9, f'$\\rho$ = {pearson_corr_train:.2f}\nMSE = {mse_train:.3f}', transform=plt.gca().transAxes)
+    plt.text(0.1, 0.8, f'y = {coef_train[0]:.2f}x + {coef_train[1]:.2f}', color='red', transform=plt.gca().transAxes)
+
+    # Testing plot
+    plt.subplot(1, 2, 2)
+    plt.scatter(y_pred_test, y_true_test, alpha=0.5)
+    coef_test = np.polyfit(y_pred_test, y_true_test, 1)
+    poly1d_fn_test = np.poly1d(coef_test)
+    plt.plot(np.unique(y_pred_test), poly1d_fn_test(np.unique(y_pred_test)), color='red')
+    plt.xlabel('DeepDEP-predicted score')
+    plt.ylabel('Original dependency score')
+    plt.title(f'Testing\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs}, VAE')
+    plt.xlim(-4, 5)
+    plt.ylim(-4, 5)
+    pearson_corr_test, _ = pearsonr(y_pred_test, y_true_test)
+    mse_test = mean_squared_error(y_true_test, y_pred_test)
+    plt.text(0.1, 0.9, f'$\\rho$ = {pearson_corr_test:.2f}\nMSE = {mse_test:.3f}', transform=plt.gca().transAxes)
+    plt.text(0.1, 0.8, f'y = {coef_test[0]:.2f}x + {coef_test[1]:.2f}', color='red', transform=plt.gca().transAxes)
+
+    plt.tight_layout()
+    plt.savefig(f'results/predictions/prediction_scatter_plots_{batch_size}_{learning_rate}_{epochs}_VAE.png')
+    plt.show()
+
 if __name__ == '__main__':
-    model_name = "vae_model"  # "model_paper"
+    model_name = "vae_model_last"  # "model_paper"
     device = "mps"
     
     # Define the model architecture with correct dimensions
@@ -180,8 +219,8 @@ if __name__ == '__main__':
     data_fprint_1298DepOIs, data_labels_fprint, gene_names_fprint, function_names_fprint = load_data("Data/crispr_gene_fingerprint_cgp.txt")
     print("\n\nDatasets successfully loaded.\n\n")
 
-    batch_size = 512
-    first_to_predict = 10
+    batch_size = 500
+    first_to_predict = 8238
     data_pred = np.zeros((first_to_predict, data_fprint_1298DepOIs.shape[0]))
     
     t = time.time()
@@ -200,10 +239,13 @@ if __name__ == '__main__':
 
     y_true_train = np.loadtxt('results/predictions/y_true_train_CCL_VAE.txt', dtype=float)
     y_pred_train = np.loadtxt('results/predictions/y_pred_train_CCL_VAE.txt', dtype=float)
-
-    plot_density(y_true_train[0:first_to_predict].flatten(),y_pred_train[0:first_to_predict].flatten(),data_pred.flatten(),5000,0.0001,10)
+    y_true_test = np.loadtxt('results/predictions/y_true_test_CCL_VAE.txt', dtype=float)
+    y_pred_test = np.loadtxt('results/predictions/y_pred_test_CCL_VAE.txt', dtype=float)
 
     # Write prediction results to txt
     data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
     data_pred_df.to_csv(f"results/predictions/tcga_predicted_data_{model_name}_demo.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
     print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s_demo.txt\n\n" % ((time.time()-t)/60, model_name))
+
+    plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),5000,1e-4,20)
+    plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, 5000, 1e-4, 20)

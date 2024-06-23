@@ -30,8 +30,8 @@ class VariationalAutoencoder(nn.Module):
         h2 = torch.relu(self.fc2(h1))
         return self.fc31(h2), self.fc32(h2)
 
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
+    def reparameterize(self, mu, logvar, var_scale=1.0):
+        std = torch.exp(0.5 * logvar * var_scale)
         eps = torch.randn_like(std)
         return mu + eps * std
 
@@ -46,12 +46,16 @@ class VariationalAutoencoder(nn.Module):
         recon_x = self.decode(z)
         return recon_x, mu, logvar
 
-def vae_loss_function(recon_x, x, mu, logvar):
-    recon_loss = nn.functional.mse_loss(recon_x, x, reduction='sum')
-    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    return recon_loss + kl_loss
+def vae_loss_function(recon_x, x, mu, logvar, data_name, recon_weight=1.0, kl_weight=1.0):
+    if data_name == "mut" or data_name == "fprint":
+        recon_loss = recon_weight * nn.functional.binary_cross_entropy_with_logits(recon_x, x, reduction='sum')
+    else:
+        recon_loss = recon_weight * nn.functional.mse_loss(recon_x, x, reduction='sum')
 
-def train_vae(model, train_loader, test_loader, num_epochs, learning_rate, device):
+    kl_loss = kl_weight * -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return recon_loss + kl_loss, recon_loss, kl_loss
+
+def train_vae(model, train_loader, test_loader, num_epochs, learning_rate, device, data_name):
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     model.to(device)
 
@@ -62,27 +66,36 @@ def train_vae(model, train_loader, test_loader, num_epochs, learning_rate, devic
             inputs = data[0].to(device)
             optimizer.zero_grad()
             recon_batch, mu, logvar = model(inputs)
-            loss = vae_loss_function(recon_batch, inputs, mu, logvar)
+            loss, _, _ = vae_loss_function(recon_batch, inputs, mu, logvar, data_name)
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
         train_loss /= len(train_loader.dataset)
 
+
         model.eval()
         test_loss = 0
+        test_recon_loss = 0
+        test_kl_loss = 0
         with torch.no_grad():
             for data in test_loader:
                 inputs = data[0].to(device)
                 recon_batch, mu, logvar = model(inputs)
-                loss = vae_loss_function(recon_batch, inputs, mu, logvar)
+                loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, data_name)
                 test_loss += loss.item()
+                test_recon_loss += recon_loss.item()
+                test_kl_loss += kl_loss.item()
         test_loss /= len(test_loader.dataset)
+        test_recon_loss /= len(test_loader.dataset) 
+        test_kl_loss /= len(test_loader.dataset) 
 
-        print(f'Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.6f}, Test Loss: {test_loss:.6f}')
+        print(f'Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.6f}, Test Loss: {test_loss:.6f}, Recon Loss: {test_recon_loss:.6f}, KL Loss: {test_kl_loss:.6f}')
 
         wandb.log({
             "train_loss": train_loss,
-            "test_loss": test_loss
+            "test_loss": test_loss,
+            "test_recon_loss": test_recon_loss,
+            "test_kl_loss": test_kl_loss
         })
 
     return model
@@ -93,6 +106,18 @@ def save_weights_to_pickle(model, file_name):
     with open(file_name, 'wb') as handle:
         pickle.dump(weights, handle)
     print(f"Model weights saved to {file_name}")
+
+def load_pretrained_vae(filepath, input_dim, first_layer_dim, second_layer_dim, latent_dim):
+    vae = VariationalAutoencoder(input_dim, first_layer_dim, second_layer_dim, latent_dim)
+    vae_state = pickle.load(open(filepath, 'rb'))
+
+    # Convert numpy arrays to PyTorch tensors
+    for key in vae_state:
+        if isinstance(vae_state[key], np.ndarray):
+            vae_state[key] = torch.tensor(vae_state[key])
+
+    vae.load_state_dict(vae_state)
+    return vae
 
 if __name__ == '__main__':
     with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
@@ -119,7 +144,7 @@ if __name__ == '__main__':
 
         config = wandb.config
         config.learning_rate = 1e-4
-        config.batch_size = 512
+        config.batch_size = 5000
         config.epochs = epochs
 
         # Split the data into training and validation sets
@@ -131,20 +156,32 @@ if __name__ == '__main__':
         train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=True)
 
-        # Define model dimensions
+        # # Define model dimensions
+        # if data_type == 'mut':
+        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
+        # elif data_type == 'exp':
+        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
+        # elif data_type == 'cna':
+        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
+        # elif data_type == 'meth':
+        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
+        # elif data_type == 'fprint':
+        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
+
+        # Define model dimensions and load pretrained VAEs
         if data_type == 'mut':
-            vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_mut_vae_1000_100_50.pickle', tensor_data_ccl.shape[1], 1000, 100, 50)
         elif data_type == 'exp':
-            vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_exp_vae_500_200_50.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'cna':
-            vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_cna_vae_500_200_50.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'meth':
-            vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_meth_vae_500_200_50.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'fprint':
             vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
         
         # Train VAE
-        trained_vae = train_vae(vae, train_loader, test_loader, num_epochs=config.epochs, learning_rate=config.learning_rate, device=device)
+        trained_vae = train_vae(vae, train_loader, test_loader, num_epochs=config.epochs, learning_rate=config.learning_rate, device=device, data_name=data_type)
 
         wandb.log({
             "learning_rate": config.learning_rate,

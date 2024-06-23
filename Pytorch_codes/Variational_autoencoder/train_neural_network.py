@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
 
-#device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-device = "cuda"
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+#device = "cuda"
 print(device)
 
 class VariationalAutoencoder(nn.Module):
@@ -235,8 +235,8 @@ if __name__ == '__main__':
     config = wandb.config
     config.learning_rate = 1e-4
     config.batch_size = 5000
-    config.epochs = 10
-    config.patience = 5
+    config.epochs = 20
+    config.patience = 3
 
     # Define dimensions for the pretrained VAEs
     dims_mut = (data_mut.shape[1], 1000, 100, 50)
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     dataset = TensorDataset(tensor_mut, tensor_exp, tensor_cna, tensor_meth, tensor_fprint, tensor_dep)
 
     # Train/test split
-    train_size = int(0.8 * len(dataset))
+    train_size = int(0.9 * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     })
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/models/vae_model_last.pth')
+    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model.pth')
     
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
@@ -310,9 +310,11 @@ if __name__ == '__main__':
 
     np.savetxt(f'results/predictions/y_true_train_CCL_VAE.txt', y_true_train, fmt='%.6f')
     np.savetxt(f'results/predictions/y_pred_train_CCL_VAE.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_test_CCL_VAE.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_test_CCL_VAE.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
 
-    plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
+    #plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
     #plot_density(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
