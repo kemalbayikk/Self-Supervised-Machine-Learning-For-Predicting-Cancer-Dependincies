@@ -52,9 +52,12 @@ class MaskedAutoencoder(nn.Module):
         decoded = self.decode(encoded)
         return decoded
 
-def masked_autoencoder_loss_function(recon_x, x, mask):
+def masked_autoencoder_loss_function(recon_x, x, mask, data_name):
     masked_x = x * mask
-    recon_loss = nn.functional.mse_loss(recon_x * mask, masked_x)
+    if data_name == "mut":
+        recon_loss = nn.functional.binary_cross_entropy_with_logits(recon_x * mask, masked_x, reduction='sum')
+    else:
+        recon_loss = nn.functional.mse_loss(recon_x * mask, masked_x)
     return recon_loss
 
 def save_weights_to_pickle(model, file_name):
@@ -73,17 +76,17 @@ def generate_mask(shape, mask_ratio=0.15):
     return mask.to(device)
 
 if __name__ == '__main__':
-    omic = "mut"
+    omic = "meth"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_MAE")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Masked_Autoencoder")
 
     config = wandb.config
     config.learning_rate = 1e-4
     config.batch_size = 64
     config.epochs = 100
     config.patience = 5
-    config.first_layer_dim = 1000
-    config.second_layer_dim = 100
+    config.first_layer_dim = 500
+    config.second_layer_dim = 200
     config.latent_dim = 50
 
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -95,7 +98,7 @@ if __name__ == '__main__':
 
     # Split the data into training and validation sets
     dataset = TensorDataset(data_tcga)
-    train_size = int(0.8 * len(dataset))
+    train_size = int(0.9 * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
@@ -118,7 +121,7 @@ if __name__ == '__main__':
             mask = generate_mask(inputs.shape)
             optimizer.zero_grad()
             recon_batch = model(inputs, mask)
-            loss = masked_autoencoder_loss_function(recon_batch, inputs, mask)
+            loss = masked_autoencoder_loss_function(recon_batch, inputs, mask, omic)
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
@@ -131,7 +134,7 @@ if __name__ == '__main__':
                 inputs = data[0].to(device)
                 mask = generate_mask(inputs.shape)
                 recon_batch = model(inputs, mask)
-                loss = masked_autoencoder_loss_function(recon_batch, inputs, mask)
+                loss = masked_autoencoder_loss_function(recon_batch, inputs, mask, omic)
                 val_loss += loss.item()
         val_loss /= len(val_loader.dataset)
 

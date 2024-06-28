@@ -40,10 +40,12 @@ class MaskedAutoencoder(nn.Module):
         decoded = self.decode(encoded)
         return decoded
 
-def masked_autoencoder_loss_function(recon_x, x, mask):
-    masked_recon_x = recon_x * (1 - mask)  # Only consider masked parts
-    masked_x = x * (1 - mask)  # Only consider masked parts
-    recon_loss = nn.functional.mse_loss(masked_recon_x, masked_x, reduction='sum') / torch.sum(1 - mask)  # MSE loss over masked parts
+def masked_autoencoder_loss_function(recon_x, x, mask, data_name):
+    masked_x = x * mask
+    if data_name == "mut" or data_name == "fprint":
+        recon_loss = nn.functional.binary_cross_entropy_with_logits(recon_x * mask, masked_x, reduction='sum')
+    else:
+        recon_loss = nn.functional.mse_loss(recon_x * mask, masked_x)
     return recon_loss
 
 class DeepDEP(nn.Module):
@@ -54,7 +56,7 @@ class DeepDEP(nn.Module):
         self.mae_cna = premodel_cna
         self.mae_meth = premodel_meth
 
-        self.mae_gene = MaskedAutoencoder(fprint_dim, 1000, 100, 50)
+        self.mae_fprint = MaskedAutoencoder(fprint_dim, 1000, 100, 50)
 
         # Update the input dimension of fc_merged1 to match the concatenated tensor's dimension
         input_dim = 50 * 5  # 50 is the latent dimension of each autoencoder
@@ -67,9 +69,9 @@ class DeepDEP(nn.Module):
         encoded_exp = self.mae_exp.encode(exp * mask_exp)
         encoded_cna = self.mae_cna.encode(cna * mask_cna)
         encoded_meth = self.mae_meth.encode(meth * mask_meth)
-        encoded_gene = self.mae_gene.encode(fprint * mask_fprint)
+        encoded_fprint = self.mae_fprint.encode(fprint * mask_fprint)
 
-        merged = torch.cat([encoded_mut, encoded_exp, encoded_cna, encoded_meth, encoded_gene], dim=1)
+        merged = torch.cat([encoded_mut, encoded_exp, encoded_cna, encoded_meth, encoded_fprint], dim=1)
         merged = torch.relu(self.fc_merged1(merged))
         merged = torch.relu(self.fc_merged2(merged))
         output = self.fc_out(merged)
@@ -78,21 +80,21 @@ class DeepDEP(nn.Module):
         recon_exp = self.mae_exp.decode(encoded_exp)
         recon_cna = self.mae_cna.decode(encoded_cna)
         recon_meth = self.mae_meth.decode(encoded_meth)
-        recon_gene = self.mae_gene.decode(encoded_gene)
+        recon_fprint = self.mae_fprint.decode(encoded_fprint)
 
-        return output, recon_mut, mut, recon_exp, exp, recon_cna, cna, recon_meth, meth, recon_gene, fprint
+        return output, recon_mut, mut, recon_exp, exp, recon_cna, cna, recon_meth, meth, recon_fprint, fprint
 
 def total_loss_function(outputs, targets, masks):
-    output, recon_mut, mut, recon_exp, exp, recon_cna, cna, recon_meth, meth, recon_gene, fprint = outputs
+    output, recon_mut, mut, recon_exp, exp, recon_cna, cna, recon_meth, meth, recon_fprint, fprint = outputs
     mask_mut, mask_exp, mask_cna, mask_meth, mask_fprint = masks
 
-    recon_loss_mut = masked_autoencoder_loss_function(recon_mut, mut, mask_mut)
-    recon_loss_exp = masked_autoencoder_loss_function(recon_exp, exp, mask_exp)
-    recon_loss_cna = masked_autoencoder_loss_function(recon_cna, cna, mask_cna)
-    recon_loss_meth = masked_autoencoder_loss_function(recon_meth, meth, mask_meth)
-    recon_loss_gene = masked_autoencoder_loss_function(recon_gene, fprint, mask_fprint)
+    recon_loss_mut = masked_autoencoder_loss_function(recon_mut, mut, mask_mut, "mut")
+    recon_loss_exp = masked_autoencoder_loss_function(recon_exp, exp, mask_exp, "exp")
+    recon_loss_cna = masked_autoencoder_loss_function(recon_cna, cna, mask_cna, "cna")
+    recon_loss_meth = masked_autoencoder_loss_function(recon_meth, meth, mask_meth, "meth")
+    recon_loss_fprint = masked_autoencoder_loss_function(recon_fprint, fprint, mask_fprint, "fprint")
 
-    return nn.functional.mse_loss(output, targets) + recon_loss_mut + recon_loss_exp + recon_loss_cna + recon_loss_meth + recon_loss_gene
+    return nn.functional.mse_loss(output, targets) + recon_loss_mut + recon_loss_exp + recon_loss_cna + recon_loss_meth + recon_loss_fprint
 
 
 def load_pretrained_mae(filepath, input_dim, first_layer_dim, second_layer_dim, latent_dim):
@@ -129,6 +131,9 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
         if early_stop:
             break
 
+        training_predictions = []
+        training_targets_list = []
+
         model.train()
         running_loss = 0.0
         if epoch == 0:
@@ -153,6 +158,10 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             optimizer.step()
 
             running_loss += loss.item()
+
+            training_predictions.extend(outputs[0].detach().cpu().numpy())
+            training_targets_list.extend(targets.detach().cpu().numpy())
+
 
         train_loss = running_loss / len(train_loader)
         print(f"Epoch {epoch+1}, Loss: {train_loss}")
@@ -215,23 +224,27 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
     elapsed_time = end_time - start_time
     print(f"Training completed in: {elapsed_time / 60:.2f} minutes")
 
-    return best_model_state_dict  # Return the best model's state_dict
+    return best_model_state_dict, training_predictions, training_targets_list  # Return the best model's state_dict
 
 
 if __name__ == '__main__':
-    ccl_size = "28"
+    ccl_size = "278"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     
-    with open('Data/ccl_complete_data_28CCL_1298DepOI_36344samples_demo.pickle', 'rb') as f:
+
+    with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"MaskedAE_DeepDEP_{ccl_size}CCL_{current_time}")
+    # with open('Data/ccl_complete_data_28CCL_1298DepOI_36344samples_demo.pickle', 'rb') as f:
+    #     data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
+
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"MaskedAutoencoder_DeepDEP_{ccl_size}CCL_{current_time}")
 
     config = wandb.config
     config.learning_rate = 1e-4
-    config.batch_size = 256
-    config.epochs = 100
-    config.patience = 5
+    config.batch_size = 5000
+    config.epochs = 10
+    config.patience = 3
 
     # Define dimensions for the pretrained MAEs
     dims_mut = (data_mut.shape[1], 1000, 100, 50)
@@ -265,7 +278,7 @@ if __name__ == '__main__':
 
     # Create the DeepDEP model using the pretrained MAE models
     model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, data_fprint.shape[1], 250)
-    best_model_state_dict = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
+    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
 
     # Load the best model and calculate Pearson Correlation
     model.load_state_dict(best_model_state_dict)
@@ -298,4 +311,18 @@ if __name__ == '__main__':
     })
 
     # Save the best model
-    torch.save(best_model_state_dict, 'model_demo_masked_autoencoder.pth')
+    torch.save(best_model_state_dict, 'model_masked_autoencoder.pth')
+
+        # Plot results
+    y_true_train = np.array(training_targets_list).flatten()
+    y_pred_train = np.array(training_predictions).flatten()
+    y_true_test = np.array(targets_list).flatten()
+    y_pred_test = np.array(predictions).flatten()
+
+    np.savetxt(f'results/predictions/y_true_train_CCL_MaskedAutoencoder.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_train_CCL_MaskedAutoencoder.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_test_CCL_MaskedAutoencoder.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_test_CCL_MaskedAutoencoder.txt', y_pred_test, fmt='%.6f')
+
+    print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
+    print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
