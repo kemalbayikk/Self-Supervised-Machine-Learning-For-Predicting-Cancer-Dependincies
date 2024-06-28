@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-#device = "cuda"
+#device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = "cuda"
 print(device)
 
 class VariationalAutoencoder(nn.Module):
