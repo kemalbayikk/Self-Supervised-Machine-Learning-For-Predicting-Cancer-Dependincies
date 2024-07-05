@@ -253,10 +253,10 @@ if __name__ == '__main__':
     dims_meth = (data_meth.shape[1], 500, 200, 50)
 
     # Load pre-trained MAE models
-    premodel_mut = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder.pickle', *dims_mut)
-    premodel_exp = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_exp_masked_autoencoder.pickle', *dims_exp)
-    premodel_cna = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder.pickle', *dims_cna)
-    premodel_meth = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_meth_masked_autoencoder.pickle', *dims_meth)
+    premodel_mut = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_mut_masked_autoencoder_best.pickle', *dims_mut)
+    premodel_exp = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_exp_masked_autoencoder_best.pickle', *dims_exp)
+    premodel_cna = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_cna_masked_autoencoder_best.pickle', *dims_cna)
+    premodel_meth = load_pretrained_mae('results/masked_autoencoders/premodel_tcga_meth_masked_autoencoder_best.pickle', *dims_meth)
 
     # Convert numpy arrays to PyTorch tensors and create datasets
     tensor_mut = torch.Tensor(data_mut)
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     dataset = TensorDataset(tensor_mut, tensor_exp, tensor_cna, tensor_meth, tensor_fprint, tensor_dep)
 
     # Train/test split
-    train_size = int(0.8 * len(dataset))
+    train_size = int(0.9 * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 

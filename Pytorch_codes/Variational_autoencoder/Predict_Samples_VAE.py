@@ -244,8 +244,8 @@ if __name__ == '__main__':
 
     # Write prediction results to txt
     data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
-    data_pred_df.to_csv(f"results/predictions/tcga_predicted_data_{model_name}_demo.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
-    print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s_demo.txt\n\n" % ((time.time()-t)/60, model_name))
+    data_pred_df.to_csv(f"results/predictions/tcga_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
+    print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
 
     plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),5000,1e-4,20)
     plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, 5000, 1e-4, 20)
