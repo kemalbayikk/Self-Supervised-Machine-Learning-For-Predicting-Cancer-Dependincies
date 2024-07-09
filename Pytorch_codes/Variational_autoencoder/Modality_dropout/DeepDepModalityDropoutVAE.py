@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
 
-# device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-device = "cuda"
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+# device = "cuda"
 print(device)
 
 class VariationalAutoencoder(nn.Module):
@@ -178,7 +178,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'best_model.pth')
+            torch.save(best_model_state_dict, 'results/models/variational_autoencoders/best_model_modality_dropout.pth')
             print("Model saved")
         else:
             epochs_no_improve += 1
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_Modality_Dropout")
 
     config = wandb.config
     config.learning_rate = 1e-4
@@ -267,7 +267,7 @@ if __name__ == '__main__':
     })
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model_modality_dropout.pth')
+    torch.save(best_model_state_dict, 'results/models/variational_autoencoders/deepdep_vae_model_modality_dropout.pth')
     
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
@@ -275,10 +275,10 @@ if __name__ == '__main__':
     y_true_test = np.array(targets_list).flatten()
     y_pred_test = np.array(predictions).flatten()
 
-    np.savetxt(f'results/predictions/y_true_train_CCL_VAE.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_pred_train_CCL_VAE.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_true_test_CCL_VAE.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_pred_test_CCL_VAE.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_train_CCL_VAE_Modality_Dropout.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_train_CCL_VAE_Modality_Dropout.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_test_CCL_VAE_Modality_Dropout.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_test_CCL_VAE_Modality_Dropout.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
