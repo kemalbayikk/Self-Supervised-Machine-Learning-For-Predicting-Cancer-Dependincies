@@ -6,7 +6,7 @@ import os
 data_path = 'results/predictions/tcga_predicted_data_vae_model_last.txt'  # Dosyanızın yolu
 data = pd.read_csv(data_path, sep='\t')
 
-cancer_type = "Glioblastoma_multiforme"
+cancer_type = "Breast_invasive_carcinoma"
 # TCGA kodlarının hangi kanser türüne ait olduğunu gösteren dosyayı yükle
 cancer_type_path = f'Data/CancerTCGAMappings/{cancer_type}.txt'  # Breast invasive kanser tipi dosyası
 with open(cancer_type_path, 'r') as file:
@@ -32,7 +32,7 @@ plt.figure(figsize=(10, 6))
 lowest_50_genes.plot(kind='bar')
 plt.title(f'Lowest 50 Genes in {cancer_type}')
 plt.xlabel('Genes')
-plt.ylabel('Mean CRISPR Score')
+plt.ylabel('Mean Dependency Score')
 plt.xticks(rotation=90)
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, f'lowest_50_genes_{cancer_type}.png'))
