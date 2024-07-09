@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Verilen verileri bir txt dosyasından okuyalım
-file_path = 'results/predictions/tcga_predicted_data_vae_model_last.txt'
+file_path = 'results/predictions/tcga_predicted_data_deepdep_vae_model_9July.txt'
 
 # Dosya içeriğini bir DataFrame'e yükleyelim
 df = pd.read_csv(file_path, sep='\t')

@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
 
-#device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-device = "cuda"
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+# device = "cuda"
 print(device)
 
 class VariationalAutoencoder(nn.Module):
@@ -182,8 +182,8 @@ if __name__ == '__main__':
 
     config = wandb.config
     config.learning_rate = 1e-4
-    config.batch_size = 5000
-    config.epochs = 20
+    config.batch_size = 10000
+    config.epochs = 100
     config.patience = 3
 
     # Define dimensions for the pretrained VAEs
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     })
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model.pth')
+    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model_9July.pth')
     
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()

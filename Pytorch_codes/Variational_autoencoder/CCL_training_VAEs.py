@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
         config = wandb.config
         config.learning_rate = 1e-4
-        config.batch_size = 5000
+        config.batch_size = 10000
         config.epochs = epochs
 
         # Split the data into training and validation sets
@@ -170,13 +170,13 @@ if __name__ == '__main__':
 
         # Define model dimensions and load pretrained VAEs
         if data_type == 'mut':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_mut_vae_1000_100_50.pickle', tensor_data_ccl.shape[1], 1000, 100, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_mut_vae_best.pickle', tensor_data_ccl.shape[1], 1000, 100, 50)
         elif data_type == 'exp':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_exp_vae_500_200_50.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_exp_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'cna':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_cna_vae_500_200_50.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_cna_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'meth':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_meth_vae_500_200_50.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_meth_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'fprint':
             vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
         
