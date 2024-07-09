@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-gene_name = "EEF2"
+gene_name = "RAN"
 
 # Kanser türlerini kısalt
 cancer_type_short = {
@@ -42,7 +42,7 @@ cancer_type_short = {
 }
 
 # Veriyi yükle
-data_path = 'results/predictions/tcga_predicted_data_vae_model_last.txt'  # Verinizi yükledikten sonra dosya yolunu güncelleyin
+data_path = 'results/predictions/tcga_predicted_data_deepdep_vae_model_9July.txt'  # Verinizi yükledikten sonra dosya yolunu güncelleyin
 data = pd.read_csv(data_path, sep='\t')
 
 # TCGA kodlarının hangi kanser türüne ait olduğunu gösteren dosyayı yükle
@@ -83,7 +83,7 @@ plt.xlabel('Cancer Types')
 plt.ylabel('Dependency Score')
 plt.xticks(rotation=90)
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir_box, f'{gene_name}_dependency_scores_boxplot.png'))
+plt.savefig(os.path.join(output_dir_box, f'{gene_name}_dependency_scores_boxplot_9july.png'))
 plt.close()
 
 # Violin plot
@@ -94,7 +94,7 @@ plt.xlabel('Cancer Types')
 plt.ylabel('Dependency Score')
 plt.xticks(rotation=90)
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir_violin, f'{gene_name}_dependency_scores_violinplot.png'))
+plt.savefig(os.path.join(output_dir_violin, f'{gene_name}_dependency_scores_violinplot_9july.png'))
 plt.close()
 
 #print(f"Box plot ve violin plot grafikleri {output_dir} klasörüne kaydedildi.")

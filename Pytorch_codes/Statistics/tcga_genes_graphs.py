@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Veriyi yükle
-data_path = 'results/predictions/tcga_predicted_data_vae_model_last.txt'  # Dosyanızın yolu
+data_path = 'results/predictions/tcga_predicted_data_deepdep_vae_model_9July.txt'  # Dosyanızın yolu
 data = pd.read_csv(data_path, sep='\t')
 
 cancer_type = "Breast_invasive_carcinoma"
@@ -35,5 +35,5 @@ plt.xlabel('Genes')
 plt.ylabel('Mean Dependency Score')
 plt.xticks(rotation=90)
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, f'lowest_50_genes_{cancer_type}.png'))
+plt.savefig(os.path.join(output_dir, f'lowest_50_genes_{cancer_type}_9july.png'))
 plt.close()
