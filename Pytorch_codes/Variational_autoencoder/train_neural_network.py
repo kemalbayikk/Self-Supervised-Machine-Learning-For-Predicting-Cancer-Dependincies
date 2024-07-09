@@ -161,11 +161,6 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_model_state_dict = model.state_dict()
             torch.save(best_model_state_dict, 'best_model.pth')
             print("Model saved")
-        else:
-            epochs_no_improve += 1
-            if epochs_no_improve >= patience:
-                print("Early stopping")
-                early_stop = True
 
     return best_model_state_dict, training_predictions, training_targets_list
 
