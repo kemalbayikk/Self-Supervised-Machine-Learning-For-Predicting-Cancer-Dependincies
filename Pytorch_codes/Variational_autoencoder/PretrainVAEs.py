@@ -76,17 +76,17 @@ def save_weights_to_pickle(model, file_name):
 if __name__ == '__main__':
 
 
-    omic = "meth"
+    omic = "mut"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}")
 
     config = wandb.config
     config.learning_rate = 1e-4
-    config.batch_size = 500
+    config.batch_size = 10000
     config.epochs = 100
     config.patience = 10
-    config.first_layer_dim = 500
-    config.second_layer_dim = 200
+    config.first_layer_dim = 1000
+    config.second_layer_dim = 100
     config.latent_dim = 50
 
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -135,6 +135,8 @@ if __name__ == '__main__':
                 inputs = data[0].to(device)
                 recon_batch, mu, logvar = model(inputs)
                 loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic)
+                test_recon_loss += recon_loss.item()
+                test_kl_loss += kl_loss.item()
                 val_loss += loss.item()
         val_loss /= len(val_loader.dataset)
         test_recon_loss /= len(val_loader.dataset) 
@@ -157,7 +159,7 @@ if __name__ == '__main__':
             best_loss = val_loss
             early_stop_counter = 0
             # Save the model's best weights
-            save_weights_to_pickle(model, f'./results/autoencoders/premodel_tcga_{omic}_vae_best.pickle')
+            save_weights_to_pickle(model, f'./results/variational_autoencoders/USL_pretrained/premodel_tcga_{omic}_vae_best.pickle')
         else:
             early_stop_counter += 1
             if early_stop_counter >= config.patience:
@@ -166,6 +168,6 @@ if __name__ == '__main__':
 
     print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 
-    model_save_name = f'premodel_tcga_{omic}_vae_500_200_50.pickle'
+    model_save_name = f'premodel_tcga_{omic}_vae.pickle'
     save_weights_to_pickle(model, './results/variational_autoencoders/USL_pretrained/' + model_save_name)
     print("\nResults saved in /results/variational_autoencoders/USL_pretrained/%s\n\n" % model_save_name)

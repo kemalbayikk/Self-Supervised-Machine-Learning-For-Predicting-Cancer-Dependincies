@@ -194,7 +194,7 @@ def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_siz
     plt.show()
 
 if __name__ == '__main__':
-    model_name = "vae_model_last"  # "model_paper"
+    model_name = "deepdep_vae_model_9July"  # "model_paper"
     device = "mps"
     
     # Define the model architecture with correct dimensions
@@ -219,7 +219,7 @@ if __name__ == '__main__':
     data_fprint_1298DepOIs, data_labels_fprint, gene_names_fprint, function_names_fprint = load_data("Data/crispr_gene_fingerprint_cgp.txt")
     print("\n\nDatasets successfully loaded.\n\n")
 
-    batch_size = 500
+    batch_size = 10000
     first_to_predict = 8238
     data_pred = np.zeros((first_to_predict, data_fprint_1298DepOIs.shape[0]))
     
