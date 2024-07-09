@@ -149,10 +149,10 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     data_dict = {
-        'mut': data_mut,
-        'exp': data_exp,
-        'cna': data_cna,
-        'meth': data_meth,
+        # 'mut': data_mut,
+        # 'exp': data_exp,
+        # 'cna': data_cna,
+        # 'meth': data_meth,
         'fprint': data_fprint
     }
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
         config = wandb.config
         config.learning_rate = 1e-4
-        config.batch_size = 5000
+        config.batch_size = 10000
         config.epochs = epochs
 
         # Split the data into training and validation sets

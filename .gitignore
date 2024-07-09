@@ -1,7 +1,8 @@
 /wandb
 /Data
-/results/models
 /results/autoencoders
-/results/variational_autoencoders
 /results/hierarchial_variational_autoencoders
 /results/masked_autoencoders
+/results/variational_autoencoders
+/results/models/
+best_model_hvae_demo.pth
