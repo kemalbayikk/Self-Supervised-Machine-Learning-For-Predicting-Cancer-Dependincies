@@ -93,17 +93,17 @@ def save_weights_to_pickle(model, file_name):
     print(f"Model weights saved to {file_name}")
 
 if __name__ == '__main__':
-    omic = "meth"
+    omic = "mut"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_HVAE")
 
     config = wandb.config
     config.learning_rate = 1e-4
-    config.batch_size = 500
+    config.batch_size = 10000
     config.epochs = 100
     config.patience = 10
-    config.first_layer_dim = 500
-    config.second_layer_dim = 200
+    config.first_layer_dim = 1000
+    config.second_layer_dim = 100
     config.latent_dim1 = 50
     config.latent_dim2 = 25
 

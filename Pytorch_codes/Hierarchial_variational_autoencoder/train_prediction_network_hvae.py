@@ -189,17 +189,17 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
 if __name__ == '__main__':
     ccl_size = "28"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    with open('Data/ccl_complete_data_28CCL_1298DepOI_36344samples_demo.pickle', 'rb') as f:
-        data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
-
-    # with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
+    # with open('Data/ccl_complete_data_28CCL_1298DepOI_36344samples_demo.pickle', 'rb') as f:
     #     data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Demo_Just_NN_{ccl_size}CCL_{current_time}_HVAE")
+    with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
+        data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
+
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_HVAE")
 
     config = wandb.config
     config.learning_rate = 1e-4
-    config.batch_size = 5000
+    config.batch_size = 10000
     config.epochs = 100
     config.patience = 3
 
@@ -211,11 +211,11 @@ if __name__ == '__main__':
     dims_fprint = (data_fprint.shape[1], 1000, 100, 50, 25)
 
     # Load pre-trained HVAE models    
-    premodel_mut = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_mut_hvae_demo.pickle', *dims_mut)
-    premodel_exp = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_exp_hvae_demo.pickle', *dims_exp)
-    premodel_cna = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_cna_hvae_demo.pickle', *dims_cna)
-    premodel_meth = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_meth_hvae_demo.pickle', *dims_meth)
-    premodel_fprint = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_fprint_hvae_demo.pickle', *dims_fprint)
+    premodel_mut = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_mut_hvae.pickle', *dims_mut)
+    premodel_exp = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_exp_hvae.pickle', *dims_exp)
+    premodel_cna = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_cna_hvae.pickle', *dims_cna)
+    premodel_meth = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_meth_hvae.pickle', *dims_meth)
+    premodel_fprint = load_pretrained_hvae('results/hierarchial_variational_autoencoders/premodel_ccl_fprint_hvae.pickle', *dims_fprint)
 
     # Convert numpy arrays to PyTorch tensors and create datasets
     tensor_mut = torch.tensor(data_mut, dtype=torch.float32)
