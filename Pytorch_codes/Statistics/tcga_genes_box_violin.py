@@ -31,8 +31,8 @@ lowest_50_genes_data_long = lowest_50_genes_data.reset_index().melt(id_vars='CRI
 
 # Box plot ve violin plot oluşturma
 # Box plot ve violin plot oluşturma
-output_dir_box = 'results/tcga_gene_distribution_graphs/box_plots'
-output_dir_violin = 'results/tcga_gene_distribution_graphs/violin_plots'
+output_dir_box = 'results/variational_autoencoders/tcga_gene_distribution_graphs/box_plots'
+output_dir_violin = 'results/variational_autoencoders/tcga_gene_distribution_graphs/violin_plots'
 os.makedirs(output_dir_box, exist_ok=True)
 os.makedirs(output_dir_violin, exist_ok=True)
 
