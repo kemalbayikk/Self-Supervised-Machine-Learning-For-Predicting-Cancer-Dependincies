@@ -179,7 +179,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'best_model.pth')
+            torch.save(best_model_state_dict, 'results/models/results/masked_autoencoders/Modality_Dropout/deepdep_mae_model_modality_dropout_best.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -257,7 +257,7 @@ if __name__ == '__main__':
         "best_pearson_correlation": pearson_corr,
     })
 
-    torch.save(best_model_state_dict, 'results/models/deepdep_mae_model_modality_dropout.pth')
+    torch.save(best_model_state_dict, 'results/models/masked_autoencoders/Modality_Dropout/deepdep_mae_model_modality_dropout.pth')
 
     y_true_train = np.array(training_targets_list).flatten()
     y_pred_train = np.array(training_predictions).flatten()
