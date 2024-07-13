@@ -83,7 +83,6 @@ def load_pretrained_lvae(filepath, input_dim, first_layer_dim, second_layer_dim,
     lvae.load_state_dict(lvae_state)
     return lvae
 
-
 class DeepDEP(nn.Module):
     def __init__(self, premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, dense_layer_dim):
         super(DeepDEP, self).__init__()
