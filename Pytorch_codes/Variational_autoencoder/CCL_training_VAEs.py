@@ -140,11 +140,11 @@ if __name__ == '__main__':
     for data_type, data_ccl in data_dict.items():
         tensor_data_ccl = torch.tensor(data_ccl, dtype=torch.float32).to(device)
 
-        run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}")
+        run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_500Batch")
 
         config = wandb.config
         config.learning_rate = 1e-4
-        config.batch_size = 10000
+        config.batch_size = 500
         config.epochs = epochs
 
         # Split the data into training and validation sets
@@ -156,27 +156,15 @@ if __name__ == '__main__':
         train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=True)
 
-        # # Define model dimensions
-        # if data_type == 'mut':
-        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
-        # elif data_type == 'exp':
-        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
-        # elif data_type == 'cna':
-        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
-        # elif data_type == 'meth':
-        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=500, second_layer_dim=200, latent_dim=50)
-        # elif data_type == 'fprint':
-        #     vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
-
         # Define model dimensions and load pretrained VAEs
         if data_type == 'mut':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_mut_vae_best.pickle', tensor_data_ccl.shape[1], 1000, 100, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_mut_vae__64batch_best.pickle', tensor_data_ccl.shape[1], 1000, 100, 50)
         elif data_type == 'exp':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_exp_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_exp_vae__64batch_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'cna':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_cna_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_cna_vae__64batch_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'meth':
-            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_meth_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+            vae = load_pretrained_vae('results/variational_autoencoders/USL_pretrained/premodel_tcga_meth_vae__64batch_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
         elif data_type == 'fprint':
             vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
         
@@ -190,5 +178,5 @@ if __name__ == '__main__':
         })
         
         # Save model weights
-        save_weights_to_pickle(trained_vae, f'./results/variational_autoencoders/premodel_ccl_{data_type}_vae.pickle')
+        save_weights_to_pickle(trained_vae, f'./results/variational_autoencoders/premodel_ccl_{data_type}_vae_64batch.pickle')
         run.finish()

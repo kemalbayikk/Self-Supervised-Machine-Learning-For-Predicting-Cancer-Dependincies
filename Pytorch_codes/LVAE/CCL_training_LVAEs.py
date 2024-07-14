@@ -169,7 +169,7 @@ if __name__ == '__main__':
         run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_LVAE")
 
         config = wandb.config
-        config.learning_rate = 1e-4
+        config.learning_rate = 1e-3
         config.batch_size = 500
         config.epochs = epochs
         config.beta_start = 0.0
