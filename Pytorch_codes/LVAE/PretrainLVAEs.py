@@ -82,10 +82,10 @@ def lvae_loss_function(recon_x, x, mu, logvar, data_name, beta, recon_weight=1.0
 
 def save_weights_to_pickle(model, file_name):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    weights = {name: param.to('cpu').detach().numpy() for name, param in model.named_parameters()}
     with open(file_name, 'wb') as handle:
-        pickle.dump(weights, handle)
+        pickle.dump(model.state_dict(), handle)
     print(f"Model weights saved to {file_name}")
+
 
 if __name__ == '__main__':
     omic = "mut"
@@ -93,8 +93,8 @@ if __name__ == '__main__':
     wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_LVAE")
 
     config = wandb.config
-    config.learning_rate = 1e-4
-    config.batch_size = 10000
+    config.learning_rate = 1e-3
+    config.batch_size = 128
     config.epochs = 100
     config.patience = 10
     config.first_layer_dim = 1000
@@ -183,12 +183,12 @@ if __name__ == '__main__':
             best_loss = val_loss
             early_stop_counter = 0
             # Save the model's best weights
-            save_weights_to_pickle(model, f'./results/ladder_variational_autoencoders/USL_pretrained/premodel_tcga_{omic}_vae_best_lvae.pickle')
-        else:
-            early_stop_counter += 1
-            if early_stop_counter >= config.patience:
-                print(f'Early stopping at epoch {epoch + 1}')
-                break
+            save_weights_to_pickle(model, f'./results/ladder_variational_autoencoders/USL_pretrained/premodel_tcga_{omic}_lvae_best.pickle')
+        # else:
+        #     early_stop_counter += 1
+        #     if early_stop_counter >= config.patience:
+        #         print(f'Early stopping at epoch {epoch + 1}')
+        #         break
 
     print('\nLVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 

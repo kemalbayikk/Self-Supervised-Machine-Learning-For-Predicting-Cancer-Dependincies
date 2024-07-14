@@ -69,12 +69,13 @@ def lvae_loss_function(recon_x, x, mu, logvar, data_name, beta, recon_weight=1.0
     kl_loss = kl_weight * -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     return recon_loss + beta * kl_loss, recon_loss, kl_loss
 
-def train_lvae(model, train_loader, test_loader, num_epochs, learning_rate, device, data_name, beta_start, beta_end):
+def train_lvae(model, train_loader, test_loader, num_epochs, learning_rate, device, data_name, beta_start, beta_end, omic):
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     model.to(device)
     
     beta = beta_start
     beta_increment_per_epoch = (beta_end - beta_start) / (0.1 * num_epochs)
+    best_loss = float('inf')
 
     for epoch in range(num_epochs):
         model.train()
@@ -112,6 +113,11 @@ def train_lvae(model, train_loader, test_loader, num_epochs, learning_rate, devi
 
         print(f'Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.6f}, Test Loss: {test_loss:.6f}, Recon Loss: {test_recon_loss:.6f}, KL Loss: {test_kl_loss:.6f}')
 
+        if test_loss < best_loss:
+            best_loss = test_loss
+            # Save the model's best weights
+            save_weights_to_pickle(model, f'./results/ladder_variational_autoencoders/premodel_ccl_{omic}_vae_best_lvae.pickle')
+
         wandb.log({
             "train_loss": train_loss,
             "test_loss": test_loss,
@@ -124,14 +130,14 @@ def train_lvae(model, train_loader, test_loader, num_epochs, learning_rate, devi
 
 def save_weights_to_pickle(model, file_name):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    weights = {name: param.to('cpu').detach().numpy() for name, param in model.named_parameters()}
     with open(file_name, 'wb') as handle:
-        pickle.dump(weights, handle)
+        pickle.dump(model.state_dict(), handle)
     print(f"Model weights saved to {file_name}")
 
 def load_pretrained_lvae(filepath, input_dim, first_layer_dim, second_layer_dim, latent_dim, ladder_dim):
     lvae = LadderVariationalAutoencoder(input_dim, first_layer_dim, second_layer_dim, latent_dim, ladder_dim)
-    lvae_state = pickle.load(open(filepath, 'rb'))
+    with open(filepath, 'rb') as handle:
+        lvae_state = pickle.load(handle)
 
     # Convert numpy arrays to PyTorch tensors
     for key in lvae_state:
@@ -160,11 +166,11 @@ if __name__ == '__main__':
     for data_type, data_ccl in data_dict.items():
         tensor_data_ccl = torch.tensor(data_ccl, dtype=torch.float32).to(device)
 
-        run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}")
+        run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_LVAE")
 
         config = wandb.config
         config.learning_rate = 1e-4
-        config.batch_size = 10000
+        config.batch_size = 500
         config.epochs = epochs
         config.beta_start = 0.0
         config.beta_end = 1.0
@@ -179,18 +185,18 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=True)
 
         if data_type == 'mut':
-            lvae = load_pretrained_lvae('results/variational_autoencoders/USL_pretrained/premodel_tcga_mut_vae_best.pickle', tensor_data_ccl.shape[1], 1000, 100, 50, 50)
+            lvae = load_pretrained_lvae('results/ladder_variational_autoencoders/USL_pretrained/premodel_tcga_mut_lvae_best.pickle', tensor_data_ccl.shape[1], 1000, 100, 50, 50)
         elif data_type == 'exp':
-            lvae = load_pretrained_lvae('results/variational_autoencoders/USL_pretrained/premodel_tcga_exp_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50, 50)
+            lvae = load_pretrained_lvae('results/ladder_variational_autoencoders/USL_pretrained/premodel_tcga_exp_lvae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50, 50)
         elif data_type == 'cna':
-            lvae = load_pretrained_lvae('results/variational_autoencoders/USL_pretrained/premodel_tcga_cna_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50, 50)
+            lvae = load_pretrained_lvae('results/ladder_variational_autoencoders/USL_pretrained/premodel_tcga_cna_lvae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50, 50)
         elif data_type == 'meth':
-            lvae = load_pretrained_lvae('results/variational_autoencoders/USL_pretrained/premodel_tcga_meth_vae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50, 50)
+            lvae = load_pretrained_lvae('results/ladder_variational_autoencoders/USL_pretrained/premodel_tcga_meth_lvae_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50, 50)
         elif data_type == 'fprint':
             lvae = LadderVariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50, ladder_dim=50)
         
         # Train LVAE
-        trained_lvae = train_lvae(lvae, train_loader, test_loader, num_epochs=config.epochs, learning_rate=config.learning_rate, device=device, data_name=data_type, beta_start=config.beta_start, beta_end=config.beta_end)
+        trained_lvae = train_lvae(lvae, train_loader, test_loader, num_epochs=config.epochs, learning_rate=config.learning_rate, device=device, data_name=data_type, beta_start=config.beta_start, beta_end=config.beta_end, omic=data_type)
 
         wandb.log({
             "learning_rate": config.learning_rate,
@@ -199,5 +205,5 @@ if __name__ == '__main__':
         })
         
         # Save model weights
-        save_weights_to_pickle(trained_lvae, f'./results/variational_autoencoders/premodel_ccl_{data_type}_vae.pickle')
+        save_weights_to_pickle(trained_lvae, f'./results/ladder_variational_autoencoders/premodel_ccl_{data_type}_lvae.pickle')
         run.finish()
