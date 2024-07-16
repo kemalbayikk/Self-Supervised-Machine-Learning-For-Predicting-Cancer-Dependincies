@@ -204,7 +204,7 @@ if __name__ == '__main__':
 
     config = wandb.config
     config.learning_rate = 1e-4
-    config.batch_size = 5000
+    config.batch_size = 10000
     config.epochs = 100
     config.patience = 3
 
