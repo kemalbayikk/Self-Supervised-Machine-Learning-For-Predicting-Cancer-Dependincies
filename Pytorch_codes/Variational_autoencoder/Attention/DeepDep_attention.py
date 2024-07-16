@@ -164,7 +164,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'best_model.pth')
+            torch.save(best_model_state_dict, 'results/models/best_model_attention.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -178,11 +178,11 @@ if __name__ == '__main__':
     with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_Attention")
 
     config = wandb.config
     config.learning_rate = 1e-4
-    config.batch_size = 10000
+    config.batch_size = 500
     config.epochs = 100
     config.patience = 3
 
@@ -194,11 +194,11 @@ if __name__ == '__main__':
     dims_fprint = (data_fprint.shape[1], 1000, 100, 50)
 
     # Load pre-trained VAE models    
-    premodel_mut = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_mut_vae.pickle', *dims_mut)
-    premodel_exp = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_exp_vae.pickle', *dims_exp)
-    premodel_cna = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_cna_vae.pickle', *dims_cna)
-    premodel_meth = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_meth_vae.pickle', *dims_meth)
-    premodel_fprint = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_fprint_vae.pickle', *dims_fprint)
+    premodel_mut = load_pretrained_vae('results/variational_autoencoders/Attention/premodel_ccl_mut_vae.pickle', *dims_mut)
+    premodel_exp = load_pretrained_vae('results/variational_autoencoders/Attention/premodel_ccl_exp_vae.pickle', *dims_exp)
+    premodel_cna = load_pretrained_vae('results/variational_autoencoders/Attention/premodel_ccl_cna_vae.pickle', *dims_cna)
+    premodel_meth = load_pretrained_vae('results/variational_autoencoders/Attention/premodel_ccl_meth_vae.pickle', *dims_meth)
+    premodel_fprint = load_pretrained_vae('results/variational_autoencoders/Attention/premodel_ccl_fprint_vae.pickle', *dims_fprint)
 
     # Convert numpy arrays to PyTorch tensors and create datasets
     tensor_mut = torch.tensor(data_mut, dtype=torch.float32)
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     })
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model_9July.pth')
+    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model_attention.pth')
     
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
@@ -256,10 +256,10 @@ if __name__ == '__main__':
     y_true_test = np.array(targets_list).flatten()
     y_pred_test = np.array(predictions).flatten()
 
-    np.savetxt(f'results/predictions/y_true_train_CCL_VAE.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_pred_train_CCL_VAE.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_true_test_CCL_VAE.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_pred_test_CCL_VAE.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_train_CCL_VAE_Attention.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_train_CCL_VAE_Attention.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_test_CCL_VAE_Attention.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_test_CCL_VAE_Attention.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
