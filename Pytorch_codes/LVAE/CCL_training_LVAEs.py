@@ -116,7 +116,7 @@ def train_lvae(model, train_loader, test_loader, num_epochs, learning_rate, devi
         if test_loss < best_loss:
             best_loss = test_loss
             # Save the model's best weights
-            save_weights_to_pickle(model, f'./results/ladder_variational_autoencoders/premodel_ccl_{omic}_vae_best_lvae.pickle')
+            save_weights_to_pickle(model, f'./results/ladder_variational_autoencoders/premodel_ccl_{omic}_lvae_best.pickle')
 
         wandb.log({
             "train_loss": train_loss,
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_LVAE")
 
         config = wandb.config
-        config.learning_rate = 1e-3
+        config.learning_rate = 1e-4
         config.batch_size = 500
         config.epochs = epochs
         config.beta_start = 0.0
