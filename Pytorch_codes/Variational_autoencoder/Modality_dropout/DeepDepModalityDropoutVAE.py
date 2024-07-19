@@ -127,6 +127,11 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             
             # Dropout maskesi oluştur
             drop_mask = [torch.rand(1).item() < p_drop for _ in range(5)]
+
+            # Drop maskesi bilgisini yazdır
+            # masked_vaes = ['mut', 'exp', 'cna', 'meth', 'fprint']
+            # masked_vaes = [vae for vae, mask in zip(masked_vaes, drop_mask) if mask]
+            # print(f"Epoch {epoch+1}, Masked VAEs: {masked_vaes}")
             
             outputs = model(*inputs, p_drop=p_drop, drop_mask=drop_mask)
             loss = criterion(outputs, targets)
@@ -234,7 +239,7 @@ if __name__ == '__main__':
     config.batch_size = 10000
     config.epochs = 100
     config.patience = 3
-    config.p_drop = 0.5  # Dropout olasılığı
+    config.p_drop = 0.25  # Dropout olasılığı
 
     # Define dimensions for the pretrained VAEs
     dims_mut = (data_mut.shape[1], 1000, 100, 50)
