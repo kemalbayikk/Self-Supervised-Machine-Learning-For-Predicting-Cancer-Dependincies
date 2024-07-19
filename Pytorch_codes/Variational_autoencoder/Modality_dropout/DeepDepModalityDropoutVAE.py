@@ -48,19 +48,8 @@ class VariationalAutoencoder(nn.Module):
         recon_x = self.decode(z)
         return recon_x, mu, logvar
 
-class ModalityDropout(nn.Module):
-    def __init__(self, drop_prob):
-        super(ModalityDropout, self).__init__()
-        self.drop_prob = drop_prob
-
-    def forward(self, x):
-        if not self.training:
-            return x
-        mask = (torch.rand(x.shape[0], 1) > self.drop_prob).float().to(x.device)
-        return x * mask
-
 class DeepDEP(nn.Module):
-    def __init__(self, premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, dense_layer_dim, drop_prob=0.5):
+    def __init__(self, premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, dense_layer_dim):
         super(DeepDEP, self).__init__()
         self.vae_mut = premodel_mut
         self.vae_exp = premodel_exp
@@ -68,30 +57,36 @@ class DeepDEP(nn.Module):
         self.vae_meth = premodel_meth
         self.vae_fprint = premodel_fprint
 
-        self.modality_dropout = ModalityDropout(drop_prob)
-
         self.fc_merged1 = nn.Linear(250, dense_layer_dim)
         self.fc_merged2 = nn.Linear(dense_layer_dim, dense_layer_dim)
         self.fc_out = nn.Linear(dense_layer_dim, 1)
 
-    def forward(self, mut, exp, cna, meth, fprint):
+    def forward(self, mut, exp, cna, meth, fprint, p_drop=0.0, drop_mask=None):
         recon_mut, mu_mut, logvar_mut = self.vae_mut(mut)
         recon_exp, mu_exp, logvar_exp = self.vae_exp(exp)
         recon_cna, mu_cna, logvar_cna = self.vae_cna(cna)
         recon_meth, mu_meth, logvar_meth = self.vae_meth(meth)
         recon_gene, mu_fprint, logvar_gene = self.vae_fprint(fprint)
-
-        mu_mut = self.modality_dropout(mu_mut)
-        mu_exp = self.modality_dropout(mu_exp)
-        mu_cna = self.modality_dropout(mu_cna)
-        mu_meth = self.modality_dropout(mu_meth)
-        mu_fprint = self.modality_dropout(mu_fprint)
+        
+        # Apply input dropout using the drop_mask
+        if drop_mask is not None:
+            mu_mut = self.apply_dropout(mu_mut, p_drop, drop_mask[0])
+            mu_exp = self.apply_dropout(mu_exp, p_drop, drop_mask[1])
+            mu_cna = self.apply_dropout(mu_cna, p_drop, drop_mask[2])
+            mu_meth = self.apply_dropout(mu_meth, p_drop, drop_mask[3])
+            mu_fprint = self.apply_dropout(mu_fprint, p_drop, drop_mask[4])
         
         merged = torch.cat([mu_mut, mu_exp, mu_cna, mu_meth, mu_fprint], dim=1)
         merged = torch.relu(self.fc_merged1(merged))
         merged = torch.relu(self.fc_merged2(merged))
         output = self.fc_out(merged)
         return output
+    
+    def apply_dropout(self, x, p_drop, drop):
+        if drop:
+            return torch.zeros_like(x)
+        return x
+
 
 def load_pretrained_vae(filepath, input_dim, first_layer_dim, second_layer_dim, latent_dim):
     vae = VariationalAutoencoder(input_dim, first_layer_dim, second_layer_dim, latent_dim)
@@ -105,7 +100,7 @@ def load_pretrained_vae(filepath, input_dim, first_layer_dim, second_layer_dim, 
     vae.load_state_dict(vae_state)
     return vae
 
-def train_model(model, train_loader, test_loader, num_epoch, patience, learning_rate):
+def train_model(model, train_loader, val_loader, num_epoch, patience, learning_rate, p_drop):
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     model.to(device)
@@ -129,7 +124,11 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             targets = batch[-1].to(device)
 
             optimizer.zero_grad()
-            outputs = model(*inputs)
+            
+            # Dropout maskesi oluştur
+            drop_mask = [torch.rand(1).item() < p_drop for _ in range(5)]
+            
+            outputs = model(*inputs, p_drop=p_drop, drop_mask=drop_mask)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
@@ -143,22 +142,22 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
         print(f"Epoch {epoch+1}, Train Loss: {train_loss}")
 
         model.eval()
-        test_loss = 0.0
+        val_loss = 0.0
         predictions = []
         targets_list = []
         with torch.no_grad():
-            for batch in test_loader:
+            for batch in val_loader:
                 inputs = [tensor.to(device) for tensor in batch[:-1]]
                 targets = batch[-1].to(device)
-                outputs = model(*inputs)
+                outputs = model(*inputs, p_drop=0.0, drop_mask=[0, 0, 0, 0, 0])  # Validation sırasında dropout yok
                 loss = criterion(outputs, targets)
-                test_loss += loss.item()
+                val_loss += loss.item()
                 
                 predictions.extend(outputs.cpu().numpy())
                 targets_list.extend(targets.cpu().numpy())
 
-        test_loss /= len(test_loader)
-        print(f"Test Loss: {test_loss}")
+        val_loss /= len(val_loader)
+        print(f"Validation Loss: {val_loss}")
 
         predictions = np.array(predictions).flatten()
         targets = np.array(targets_list).flatten()
@@ -167,43 +166,75 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
 
         wandb.log({
             "train_loss": train_loss,
-            "test_loss": test_loss,
+            "val_loss": val_loss,
             "pearson_correlation": pearson_corr,
             "learning_rate": optimizer.param_groups[0]['lr'],
             "batch_size": train_loader.batch_size,
             "epoch": epoch + 1
         })
 
-        if test_loss < best_loss:
-            best_loss = test_loss
+        if val_loss < best_loss:
+            best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'results/models/variational_autoencoders/best_model_modality_dropout.pth')
+            torch.save(best_model_state_dict, 'best_model_vae_64batch.pth')
             print("Model saved")
-        # else:
-        #     epochs_no_improve += 1
-        #     if epochs_no_improve >= patience:
-        #         print("Early stopping")
-        #         early_stop = True
 
     return best_model_state_dict, training_predictions, training_targets_list
+
+
+def test_model(model, test_loader, device):
+    model.eval()
+    drop_masks = [
+        [1, 0, 0, 0, 0],  # mut kapalı
+        [0, 1, 0, 0, 0],  # exp kapalı
+        [0, 0, 1, 0, 0],  # cna kapalı
+        [0, 0, 0, 1, 0],  # meth kapalı
+        [0, 0, 0, 0, 1],  # fprint kapalı
+        [0, 0, 0, 0, 0]   # Hiçbiri kapalı değil (referans)
+    ]
+
+    results = {}
+    with torch.no_grad():
+        for mask in drop_masks:
+            predictions = []
+            targets_list = []
+            for batch in test_loader:
+                inputs = [tensor.to(device) for tensor in batch[:-1]]
+                targets = batch[-1].to(device)
+                outputs = model(*inputs, p_drop=0.0, drop_mask=mask)
+                predictions.extend(outputs.cpu().numpy())
+                targets_list.extend(targets.cpu().numpy())
+
+            predictions = np.array(predictions).flatten()
+            targets = np.array(targets_list).flatten()
+            pearson_corr, _ = pearsonr(predictions, targets)
+            mask_str = "_".join(map(str, mask))
+            results[mask_str] = {
+                "predictions": predictions,
+                "targets": targets,
+                "pearson_corr": pearson_corr
+            }
+            print(f"Mask: {mask_str}, Pearson Correlation: {pearson_corr}")
+    
+    return results
+
+
 
 if __name__ == '__main__':
     ccl_size = "278"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    # with open('Data/ccl_complete_data_28CCL_1298DepOI_36344samples_demo.pickle', 'rb') as f:
-    #     data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
-
     with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_Modality_Dropout")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_64batch_input_dropout")
 
     config = wandb.config
     config.learning_rate = 1e-4
     config.batch_size = 10000
     config.epochs = 100
     config.patience = 3
+    config.p_drop = 0.5  # Dropout olasılığı
 
     # Define dimensions for the pretrained VAEs
     dims_mut = (data_mut.shape[1], 1000, 100, 50)
@@ -213,11 +244,11 @@ if __name__ == '__main__':
     dims_fprint = (data_fprint.shape[1], 1000, 100, 50)
 
     # Load pre-trained VAE models    
-    premodel_mut = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_mut_vae.pickle', *dims_mut)
-    premodel_exp = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_exp_vae.pickle', *dims_exp)
-    premodel_cna = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_cna_vae.pickle', *dims_cna)
-    premodel_meth = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_meth_vae.pickle', *dims_meth)
-    premodel_fprint = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_fprint_vae.pickle', *dims_fprint)
+    premodel_mut = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_mut_vae_64batch.pickle', *dims_mut)
+    premodel_exp = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_exp_vae_64batch.pickle', *dims_exp)
+    premodel_cna = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_cna_vae_64batch.pickle', *dims_cna)
+    premodel_meth = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_meth_vae_64batch.pickle', *dims_meth)
+    premodel_fprint = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_fprint_vae_64batch.pickle', *dims_fprint)
 
     # Convert numpy arrays to PyTorch tensors and create datasets
     tensor_mut = torch.tensor(data_mut, dtype=torch.float32)
@@ -229,60 +260,52 @@ if __name__ == '__main__':
 
     dataset = TensorDataset(tensor_mut, tensor_exp, tensor_cna, tensor_meth, tensor_fprint, tensor_dep)
 
-    # Train/test split
-    train_size = int(0.9 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+    # Train/val/test split
+    train_size = int(0.8 * len(dataset))
+    val_size = int(0.1 * len(dataset))
+    test_size = len(dataset) - train_size - val_size
+    train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
 
     print("Train size : ", train_size)
+    print("Validation size : ", val_size)
     print("Test size : ", test_size)
 
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
 
     # Create the DeepDEP model using the pretrained VAE models
     model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 250)
-    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, test_loader, config.epochs, config.patience, config.learning_rate)
+    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, config.p_drop)
 
     # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
     model.load_state_dict(best_model_state_dict)
-    model.eval()
-    predictions = []
-    targets_list = []
-    with torch.no_grad():
-        for batch in test_loader:
-            inputs = [tensor.to(device) for tensor in batch[:-1]]
-            targets = batch[-1].to(device)
-            outputs = model(*inputs)
-            predictions.extend(outputs.cpu().numpy())
-            targets_list.extend(targets.cpu().numpy())
-
-    predictions = np.array(predictions).flatten()
-    targets = np.array(targets_list).flatten()
-    pearson_corr, _ = pearsonr(predictions, targets)
-    print(f"Best Pearson Correlation: {pearson_corr}")
-
-    wandb.log({
-        "best_pearson_correlation": pearson_corr,
-    })
+    
+    # Test sırasında her bir modaliteyi kapatarak test etme
+    results = test_model(model, test_loader, device)
+    for mask, res in results.items():
+        print(f"Mask: {mask}, Pearson Correlation: {res['pearson_corr']}")
+        wandb.log({
+            f"test_pearson_correlation_{mask}": res['pearson_corr'],
+        })
+        
+        # Tahmin ve gerçek değerleri kaydetme
+        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_mask_{mask}_input_dropout.txt', res['targets'], fmt='%.6f')
+        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_mask_{mask}_input_dropout.txt', res['predictions'], fmt='%.6f')
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/models/variational_autoencoders/deepdep_vae_model_modality_dropout.pth')
-    
+    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model_64batch_input_dropout.pth')
+
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
     y_pred_train = np.array(training_predictions).flatten()
-    y_true_test = np.array(targets_list).flatten()
-    y_pred_test = np.array(predictions).flatten()
+    y_true_test = results["0_0_0_0_0"]["targets"].flatten()  # Hiçbir modalite kapalı değilken
+    y_pred_test = results["0_0_0_0_0"]["predictions"].flatten()  # Hiçbir modalite kapalı değilken
 
-    np.savetxt(f'results/predictions/y_true_train_CCL_VAE_Modality_Dropout.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_pred_train_CCL_VAE_Modality_Dropout.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_true_test_CCL_VAE_Modality_Dropout.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'results/predictions/y_pred_test_CCL_VAE_Modality_Dropout.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_train_CCL_VAE_64batch_Input_Dropout.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_train_CCL_VAE_64batch_Input_Dropout.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_CCL_VAE_64batch_Input_Dropout.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_CCL_VAE_64batch_Input_Dropout.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
-
-    #plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
-    #plot_density(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
-

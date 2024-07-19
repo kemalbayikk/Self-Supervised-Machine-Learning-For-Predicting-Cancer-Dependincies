@@ -26,19 +26,13 @@ class MaskedAutoencoder(nn.Module):
         self.decoder_fc2 = nn.Linear(second_layer_dim, first_layer_dim)
         self.decoder_fc3 = nn.Linear(first_layer_dim, input_dim)
 
-    def forward(self, x, mask_ratio=0.75):
-        mask = torch.rand(x.shape).to(x.device) < mask_ratio
-        x_masked = x * mask.float()
+    def forward(self, x):
 
-        encoded = torch.relu(self.encoder_fc1(x_masked))
+        encoded = torch.relu(self.encoder_fc1(x))
         encoded = torch.relu(self.encoder_fc2(encoded))
         latent = self.encoder_fc3(encoded)
 
-        decoded = torch.relu(self.decoder_fc1(latent))
-        decoded = torch.relu(self.decoder_fc2(decoded))
-        reconstructed = self.decoder_fc3(decoded)
-
-        return reconstructed, mask, latent
+        return latent
 
 class DeepDEP(nn.Module):
     def __init__(self, premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, latent_dim, dense_layer_dim):
@@ -56,11 +50,11 @@ class DeepDEP(nn.Module):
         self.fc_out = nn.Linear(dense_layer_dim, 1)
 
     def forward(self, mut, exp, cna, meth, fprint):
-        recon_mut, mask_mut, latent_mut = self.mae_mut(mut)
-        recon_exp, mask_exp, latent_exp = self.mae_exp(exp)
-        recon_cna, mask_cna, latent_cna = self.mae_cna(cna)
-        recon_meth, mask_meth, latent_meth = self.mae_meth(meth)
-        recon_fprint, mask_fprint, latent_fprint = self.mae_fprint(fprint)
+        latent_mut = self.mae_mut(mut)
+        latent_exp = self.mae_exp(exp)
+        latent_cna = self.mae_cna(cna)
+        latent_meth = self.mae_meth(meth)
+        latent_fprint = self.mae_fprint(fprint)
         
         merged = torch.cat([latent_mut, latent_exp, latent_cna, latent_meth, latent_fprint], dim=1)
         merged = torch.relu(self.fc_merged1(merged))
@@ -153,7 +147,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'best_model.pth')
+            torch.save(best_model_state_dict, 'best_model_mae_last.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -164,7 +158,7 @@ if __name__ == '__main__':
     with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_MAE")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_MAE_last")
 
     config = wandb.config
     config.learning_rate = 1e-4
@@ -236,7 +230,7 @@ if __name__ == '__main__':
     })
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/models/deepdep_mae_model.pth')
+    torch.save(best_model_state_dict, 'results/models/deepdep_mae_model_last.pth')
     
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
