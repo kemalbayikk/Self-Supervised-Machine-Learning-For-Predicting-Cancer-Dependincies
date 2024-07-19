@@ -34,19 +34,8 @@ class MaskedAutoencoder(nn.Module):
 
         return latent
 
-class ModalityDropout(nn.Module):
-    def __init__(self, drop_prob):
-        super(ModalityDropout, self).__init__()
-        self.drop_prob = drop_prob
-
-    def forward(self, x):
-        if not self.training:
-            return x
-        mask = (torch.rand(x.shape[0], 1) > self.drop_prob).float().to(x.device)
-        return x * mask
-
 class DeepDEP(nn.Module):
-    def __init__(self, premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, latent_dim, dense_layer_dim, drop_prob=0.5):
+    def __init__(self, premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, latent_dim, dense_layer_dim):
         super(DeepDEP, self).__init__()
         self.mae_mut = premodel_mut
         self.mae_exp = premodel_exp
@@ -54,31 +43,37 @@ class DeepDEP(nn.Module):
         self.mae_meth = premodel_meth
         self.mae_fprint = premodel_fprint
 
-        self.modality_dropout = ModalityDropout(drop_prob)
-
+        # Calculate the total dimension after concatenating latent dimensions
         latent_dim_total = latent_dim * 5  # 5 autoencoders with latent_dim each
         self.fc_merged1 = nn.Linear(latent_dim_total, dense_layer_dim)
         self.fc_merged2 = nn.Linear(dense_layer_dim, dense_layer_dim)
         self.fc_out = nn.Linear(dense_layer_dim, 1)
 
-    def forward(self, mut, exp, cna, meth, fprint):
+    def forward(self, mut, exp, cna, meth, fprint, p_drop=0.0, drop_mask=None):
         latent_mut = self.mae_mut(mut)
         latent_exp = self.mae_exp(exp)
         latent_cna = self.mae_cna(cna)
         latent_meth = self.mae_meth(meth)
         latent_fprint = self.mae_fprint(fprint)
 
-        latent_mut = self.modality_dropout(latent_mut)
-        latent_exp = self.modality_dropout(latent_exp)
-        latent_cna = self.modality_dropout(latent_cna)
-        latent_meth = self.modality_dropout(latent_meth)
-        latent_fprint = self.modality_dropout(latent_fprint)
-
+        # Apply input dropout using the drop_mask
+        if drop_mask is not None:
+            latent_mut = self.apply_dropout(latent_mut, drop_mask[0])
+            latent_exp = self.apply_dropout(latent_exp, drop_mask[1])
+            latent_cna = self.apply_dropout(latent_cna, drop_mask[2])
+            latent_meth = self.apply_dropout(latent_meth, drop_mask[3])
+            latent_fprint = self.apply_dropout(latent_fprint, drop_mask[4])
+        
         merged = torch.cat([latent_mut, latent_exp, latent_cna, latent_meth, latent_fprint], dim=1)
         merged = torch.relu(self.fc_merged1(merged))
         merged = torch.relu(self.fc_merged2(merged))
         output = self.fc_out(merged)
         return output
+
+    def apply_dropout(self, x, drop):
+        if drop:
+            return torch.zeros_like(x)
+        return x
 
 def load_pretrained_mae(filepath, input_dim, first_layer_dim, second_layer_dim, latent_dim):
     mae = MaskedAutoencoder(input_dim, first_layer_dim, second_layer_dim, latent_dim)
@@ -121,9 +116,9 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             drop_mask = [torch.rand(1).item() < p_drop for _ in range(5)]
             
             # Drop maskesi bilgisini yazdır
-            # masked_vaes = ['mut', 'exp', 'cna', 'meth', 'fprint']
-            # masked_vaes = [vae for vae, mask in zip(masked_vaes, drop_mask) if mask]
-            # print(f"Epoch {epoch+1}, Masked VAEs: {masked_vaes}")
+            masked_vaes = ['mut', 'exp', 'cna', 'meth', 'fprint']
+            masked_vaes = [vae for vae, mask in zip(masked_vaes, drop_mask) if mask]
+            print(f"Epoch {epoch+1}, Masked VAEs: {masked_vaes}")
 
             outputs = model(*inputs, p_drop=p_drop, drop_mask=drop_mask)
             loss = criterion(outputs, targets)
@@ -174,10 +169,16 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'results/masked_autoencoders/Modality_Dropout/deepdep_mae_model_input_dropout_best.pth')
+            torch.save(best_model_state_dict, 'best_model_mae_input_dropout.pth')
             print("Model saved")
+        else:
+            epochs_no_improve += 1
+            if epochs_no_improve == patience:
+                print("Early stopping")
+                early_stop = True
 
     return best_model_state_dict, training_predictions, training_targets_list
+
 
 def test_model(model, test_loader, device):
     model.eval()
@@ -214,6 +215,7 @@ def test_model(model, test_loader, device):
             print(f"Mask: {mask_str}, Pearson Correlation: {pearson_corr}")
     
     return results
+
 
 
 if __name__ == '__main__':
@@ -287,11 +289,11 @@ if __name__ == '__main__':
         })
         
         # Tahmin ve gerçek değerleri kaydetme
-        np.savetxt(f'results/predictions/Masked Autoencoder/Modality_Dropout/y_true_test_mask_{mask}_input_dropout.txt', res['targets'], fmt='%.6f')
-        np.savetxt(f'results/predictions/Masked Autoencoder/Modality_Dropout/y_pred_test_mask_{mask}_input_dropout.txt', res['predictions'], fmt='%.6f')
+        np.savetxt(f'results/predictions/y_true_test_mask_{mask}.txt', res['targets'], fmt='%.6f')
+        np.savetxt(f'results/predictions/y_pred_test_mask_{mask}.txt', res['predictions'], fmt='%.6f')
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/masked_autoencoders/Modality_Dropout/deepdep_mae_model_input_dropout.pth')
+    torch.save(best_model_state_dict, 'results/models/deepdep_mae_model_input_dropout.pth')
 
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
@@ -299,10 +301,10 @@ if __name__ == '__main__':
     y_true_test = results["0_0_0_0_0"]["targets"].flatten()  # Hiçbir modalite kapalı değilken
     y_pred_test = results["0_0_0_0_0"]["predictions"].flatten()  # Hiçbir modalite kapalı değilken
 
-    np.savetxt(f'results/predictions/Masked Autoencoder/Modality_Dropout/y_true_train_CCL_MAE_input_dropout.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/Masked Autoencoder/Modality_Dropout/y_pred_train_CCL_MAE_input_dropout.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/Masked Autoencoder/Modality_Dropout/y_true_test_CCL_MAE_input_dropout.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'results/predictions/Masked Autoencoder/Modality_Dropout/y_pred_test_CCL_MAE_input_dropout.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_train_CCL_MAE_input_dropout.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_train_CCL_MAE_input_dropout.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_true_test_CCL_MAE_input_dropout.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/y_pred_test_CCL_MAE_input_dropout.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
