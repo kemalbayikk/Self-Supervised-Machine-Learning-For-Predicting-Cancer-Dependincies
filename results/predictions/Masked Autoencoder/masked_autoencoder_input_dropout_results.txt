@@ -1,0 +1,13 @@
+wandb: Run summary:
+wandb:                         batch_size 10000
+wandb:                              epoch 100
+wandb:                      learning_rate 0.0001
+wandb:                pearson_correlation 0.89545
+wandb: test_pearson_correlation_0_0_0_0_0 0.89544
+wandb: test_pearson_correlation_0_0_0_0_1 0.08396
+wandb: test_pearson_correlation_0_0_0_1_0 0.89537
+wandb: test_pearson_correlation_0_0_1_0_0 0.89538
+wandb: test_pearson_correlation_0_1_0_0_0 0.89418
+wandb: test_pearson_correlation_1_0_0_0_0 0.89324
+wandb:                         train_loss 0.03897
+wandb:                           val_loss 0.03843

@@ -113,7 +113,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             optimizer.zero_grad()
             
             # Dropout maskesi oluştur
-            drop_mask = [torch.rand(1).item() < p_drop for _ in range(5)]
+            drop_mask = [torch.rand(1).item() < p_drop for _ in range(4)] + [False]
             
             # Drop maskesi bilgisini yazdır
             masked_vaes = ['mut', 'exp', 'cna', 'meth', 'fprint']
@@ -171,11 +171,6 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_model_state_dict = model.state_dict()
             torch.save(best_model_state_dict, 'best_model_mae_input_dropout.pth')
             print("Model saved")
-        else:
-            epochs_no_improve += 1
-            if epochs_no_improve == patience:
-                print("Early stopping")
-                early_stop = True
 
     return best_model_state_dict, training_predictions, training_targets_list
 
@@ -231,7 +226,7 @@ if __name__ == '__main__':
     config.batch_size = 10000
     config.epochs = 100
     config.patience = 3
-    config.p_drop = 0.5  # Dropout olasılığı
+    config.p_drop = 0.25  # Dropout olasılığı
 
     latent_dim = 50
 
