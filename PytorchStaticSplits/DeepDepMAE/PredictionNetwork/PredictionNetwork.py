@@ -127,7 +127,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
                 targets_list.extend(targets.cpu().numpy())
 
         val_loss /= len(val_loader)
-        print(f"Test Loss: {val_loss}")
+        print(f"Val Loss: {val_loss}")
 
         predictions = np.array(predictions).flatten()
         targets = np.array(targets_list).flatten()
@@ -147,7 +147,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepMAE/Results/PredictionNetworkModels/Split{split_num}/best_model_mae_split_{split_num}.pth')
+            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/best_model_mae_split_{split_num}.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -216,12 +216,12 @@ if __name__ == '__main__':
         # print("Test size : ", test_size)
 
         train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=False)
         test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
 
         # Create the DeepDEP model using the pretrained MAE models
         model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, latent_dim, 250)
-        best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate)
+        best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, split_num)
 
         # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
         model.load_state_dict(best_model_state_dict)
@@ -254,10 +254,10 @@ if __name__ == '__main__':
         y_true_test = np.array(targets_list).flatten()
         y_pred_test = np.array(predictions).flatten()
 
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/predictions/y_true_train_CCL_MAE_Split_{split_num}.txt', y_true_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/predictions/y_pred_train_CCL_MAE_Split_{split_num}.txt', y_pred_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/predictions/y_true_test_CCL_MAE_Split_{split_num}.txt', y_true_test, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/predictions/y_pred_test_CCL_MAE_Split_{split_num}.txt', y_pred_test, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_MAE_Split_{split_num}.txt', y_true_train, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_MAE_Split_{split_num}.txt', y_pred_train, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_MAE_Split_{split_num}.txt', y_true_test, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_MAE_Split_{split_num}.txt', y_pred_test, fmt='%.6f')
 
         print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
         print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
