@@ -106,13 +106,7 @@ def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device
             best_loss = val_loss
             early_stop_counter = 0
             # Save the model's best weights
-            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/tcga_{data_name}_vae_best_split_{split_num}.pickle')
-        else:
-            early_stop_counter += 1
-
-        if early_stop_counter >= patience:
-            print("Early stopping triggered")
-            break
+            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_vae_best_split_{split_num}.pickle')
 
     return model
 
@@ -164,48 +158,76 @@ if __name__ == '__main__':
     ccl_size = 278
     epochs = 100
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    split_num = 1
 
-    data_types = ['mut', 'exp', 'cna', 'meth', 'fprint']
+    # data_types = ['mut', 'exp', 'cna', 'meth', 'fprint']
     
-    for split_num in range(1, 2):
-        with open(f'/Volumes/Harici/MscProject/data_split_{split_num}.pickle', 'rb') as f:
+    for split_num in range(1, 6):
+        with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
             train_dataset, val_dataset, test_dataset = pickle.load(f)
         
         data_dict = {
-            'mut': train_dataset[:][0],
-            'exp': train_dataset[:][1],
-            'cna': train_dataset[:][2],
-            'meth': train_dataset[:][3],
-            'fprint': train_dataset[:][4]
+            # 'mut': {
+            #     'train':train_dataset[:][0],
+            #     'val':val_dataset[:][0],
+            #     'test':test_dataset[:][0]
+            #     }
+            # 'exp': {
+            #     'train':train_dataset[:][1],
+            #     'val':val_dataset[:][1],
+            #     'test':test_dataset[:][1]
+            #     },
+            'cna': {
+                'train':train_dataset[:][2],
+                'val':val_dataset[:][2],
+                'test':test_dataset[:][2]
+                },
+            # 'meth': {
+            #     'train':train_dataset[:][3],
+            #     'val':val_dataset[:][3],
+            #     'test':test_dataset[:][3]
+            #     },
+            # 'fprint': {
+            #     'train':train_dataset[:][4],
+            #     'val':val_dataset[:][4],
+            #     'test':test_dataset[:][4]
+            #     },
         }
 
         for data_type, data_ccl in data_dict.items():
-            tensor_data_ccl = torch.tensor(data_ccl, dtype=torch.float32).to(device)
 
-            run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}")
+            print(data_ccl["train"])
+            run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}")
 
             config = wandb.config
             config.learning_rate = 1e-4
-            config.batch_size = 500
+            config.batch_size = 10000
             config.epochs = epochs
 
+            # Extract tensors from val_dataset and test_dataset
+            train_tensors = torch.tensor(data_ccl["train"], dtype=torch.float32).to(device)
+            val_tensors = torch.tensor(data_ccl["val"], dtype=torch.float32).to(device)
+            test_tensors = torch.tensor(data_ccl["test"], dtype=torch.float32).to(device)
+
+            print(len(data_ccl["train"]))
+            print(len(data_ccl["val"]))
+            print(len(data_ccl["test"]))
+
             # Create DataLoader for train, val, and test sets
-            train_loader = DataLoader(TensorDataset(tensor_data_ccl), batch_size=config.batch_size, shuffle=True)
-            val_loader = DataLoader(TensorDataset(val_dataset), batch_size=config.batch_size, shuffle=False)
-            test_loader = DataLoader(TensorDataset(test_dataset), batch_size=config.batch_size, shuffle=False)
+            train_loader = DataLoader(TensorDataset(train_tensors), batch_size=config.batch_size, shuffle=True)
+            val_loader = DataLoader(TensorDataset(val_tensors), batch_size=config.batch_size, shuffle=False)
+            test_loader = DataLoader(TensorDataset(test_tensors), batch_size=config.batch_size, shuffle=False)
 
             # Define model dimensions and load pretrained VAEs
             if data_type == 'mut':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_pretrained/premodel_tcga_mut_vae_split_{split_num}_best.pickle', tensor_data_ccl.shape[1], 1000, 100, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_pretrained/tcga_mut_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 1000, 100, 50)
             elif data_type == 'exp':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/premodel_tcga_exp_vae_split_{split_num}_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'cna':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/premodel_tcga_cna_vae_split_{split_num}_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'meth':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/premodel_tcga_meth_vae_split_{split_num}_best.pickle', tensor_data_ccl.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'fprint':
-                vae = VariationalAutoencoder(input_dim=tensor_data_ccl.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
+                vae = VariationalAutoencoder(input_dim=train_tensors.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
             
             # Train VAE
             trained_vae = train_vae(vae, train_loader, val_loader, num_epochs=config.epochs, learning_rate=config.learning_rate, device=device, data_name=data_type)
