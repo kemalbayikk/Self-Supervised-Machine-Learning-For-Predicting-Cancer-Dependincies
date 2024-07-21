@@ -176,21 +176,21 @@ if __name__ == '__main__':
             #     'val':val_dataset[:][1],
             #     'test':test_dataset[:][1]
             #     },
-            'cna': {
-                'train':train_dataset[:][2],
-                'val':val_dataset[:][2],
-                'test':test_dataset[:][2]
-                },
+            # 'cna': {
+            #     'train':train_dataset[:][2],
+            #     'val':val_dataset[:][2],
+            #     'test':test_dataset[:][2]
+            #     },
             # 'meth': {
             #     'train':train_dataset[:][3],
             #     'val':val_dataset[:][3],
             #     'test':test_dataset[:][3]
             #     },
-            # 'fprint': {
-            #     'train':train_dataset[:][4],
-            #     'val':val_dataset[:][4],
-            #     'test':test_dataset[:][4]
-            #     },
+            'fprint': {
+                'train':train_dataset[:][4],
+                'val':val_dataset[:][4],
+                'test':test_dataset[:][4]
+                },
         }
 
         for data_type, data_ccl in data_dict.items():
