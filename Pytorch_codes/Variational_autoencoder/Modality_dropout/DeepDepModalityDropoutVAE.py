@@ -126,7 +126,13 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             optimizer.zero_grad()
             
             # Dropout maskesi oluştur
-            drop_mask = [torch.rand(1).item() < p_drop for _ in range(5)]
+            # drop_mask = [torch.rand(1).item() < p_drop for _ in range(4)] + [False]
+            drop_mask = [0,0,0,0,1]
+
+            # Drop maskesi bilgisini yazdır
+            # masked_vaes = ['mut', 'exp', 'cna', 'meth', 'fprint']
+            # masked_vaes = [vae for vae, mask in zip(masked_vaes, drop_mask) if mask]
+            # print(f"Epoch {epoch+1}, Masked VAEs: {masked_vaes}")
             
             outputs = model(*inputs, p_drop=p_drop, drop_mask=drop_mask)
             loss = criterion(outputs, targets)
@@ -177,7 +183,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'best_model_vae_64batch.pth')
+            torch.save(best_model_state_dict, 'best_model_vae_64batch_without_fprint.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -227,7 +233,7 @@ if __name__ == '__main__':
     with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_64batch_input_dropout")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_64batch_input_dropout_without_fprint")
 
     config = wandb.config
     config.learning_rate = 1e-4
@@ -290,8 +296,8 @@ if __name__ == '__main__':
         })
         
         # Tahmin ve gerçek değerleri kaydetme
-        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_mask_{mask}_input_dropout.txt', res['targets'], fmt='%.6f')
-        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_mask_{mask}_input_dropout.txt', res['predictions'], fmt='%.6f')
+        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_mask_{mask}_input_dropout_without_fprint.txt', res['targets'], fmt='%.6f')
+        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_mask_{mask}_input_dropout_without_fprint.txt', res['predictions'], fmt='%.6f')
 
     # Save the best model
     torch.save(best_model_state_dict, 'results/models/deepdep_vae_model_64batch_input_dropout.pth')
@@ -302,10 +308,10 @@ if __name__ == '__main__':
     y_true_test = results["0_0_0_0_0"]["targets"].flatten()  # Hiçbir modalite kapalı değilken
     y_pred_test = results["0_0_0_0_0"]["predictions"].flatten()  # Hiçbir modalite kapalı değilken
 
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_train_CCL_VAE_64batch_Input_Dropout.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_train_CCL_VAE_64batch_Input_Dropout.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_CCL_VAE_64batch_Input_Dropout.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_CCL_VAE_64batch_Input_Dropout.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_train_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_train_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")

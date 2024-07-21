@@ -6,3 +6,12 @@
 /results/variational_autoencoders
 /results/models/
 best_model_hvae_demo.pth
+/PytorchStaticSplits/TCGASplits/
+/results/original_paper
+best_model_mae_input_dropout.pth
+best_model_mae_last.pth
+best_model_vae_64batch_input_dropout.pth
+best_model_vae_64batch_LSG_seperated_LR.pth
+best_model_vae_64batch_LSG.pth
+best_model_vae_64batch_without_fprint.pth
+best_model_vae_64batch.pth
