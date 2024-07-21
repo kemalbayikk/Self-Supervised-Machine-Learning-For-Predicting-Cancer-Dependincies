@@ -88,8 +88,8 @@ if __name__ == '__main__':
             config.batch_size = 500
             config.epochs = 100
             config.patience = 10
-            config.first_layer_dim = 500
-            config.second_layer_dim = 200
+            config.first_layer_dim = 1000
+            config.second_layer_dim = 100
             config.latent_dim = 50
 
             device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
