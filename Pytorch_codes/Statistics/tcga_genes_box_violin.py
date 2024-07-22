@@ -4,7 +4,7 @@ import seaborn as sns
 import os
 
 # Veriyi yükle
-data_path = 'results/predictions/Masked Autoencoder/tcga_predicted_data_deepdep_mae_model.txt'  # Dosyanızın yolu
+data_path = 'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/tcga_predicted_data_best_model_vae_split_2.txt'  # Dosyanızın yolu
 data = pd.read_csv(data_path, sep='\t')
 
 cancer_types = ["Adrenocortical_carcinoma",
@@ -40,6 +40,8 @@ cancer_types = ["Adrenocortical_carcinoma",
     "Uterine_Corpus_Endometrial_Carcinoma",
     "Uveal_Melanoma"]
 
+print(len(cancer_types))
+
 for cancer_type in cancer_types: 
 
     #cancer_type = "Breast_invasive_carcinoma"
@@ -66,8 +68,8 @@ for cancer_type in cancer_types:
 
     # Box plot ve violin plot oluşturma
     # Box plot ve violin plot oluşturma
-    output_dir_box = 'results/masked_autoencoders/tcga_gene_distribution_graphs/box_plots'
-    output_dir_violin = 'results/masked_autoencoders/tcga_gene_distribution_graphs/violin_plots'
+    output_dir_box = 'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/Box Plots'
+    output_dir_violin = 'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/Violin Plots'
     os.makedirs(output_dir_box, exist_ok=True)
     os.makedirs(output_dir_violin, exist_ok=True)
 

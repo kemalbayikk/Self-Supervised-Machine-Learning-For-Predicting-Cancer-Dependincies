@@ -9,61 +9,6 @@ from scipy.stats import pearsonr
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
 
-# class VAE(nn.Module):
-#     def __init__(self, input_dim, hidden_dims, latent_dim):
-#         super(VAE, self).__init__()
-#         self.fc1 = nn.Linear(input_dim, hidden_dims[0])
-#         self.fc2 = nn.Linear(hidden_dims[0], hidden_dims[1])
-#         self.fc3_mean = nn.Linear(hidden_dims[1], latent_dim)
-#         self.fc3_log_var = nn.Linear(hidden_dims[1], latent_dim)
-
-#     def encode(self, x):
-#         h = torch.relu(self.fc1(x))
-#         h = torch.relu(self.fc2(h))
-#         return self.fc3_mean(h), self.fc3_log_var(h)
-
-#     def reparameterize(self, mean, log_var):
-#         std = torch.exp(0.5 * log_var)
-#         eps = torch.randn_like(std)
-#         return mean + eps * std
-
-#     def forward(self, x):
-#         mean, log_var = self.encode(x)
-#         z = self.reparameterize(mean, log_var)
-#         return z, mean, log_var
-
-# class DeepDEP(nn.Module):
-#     def __init__(self, dims_mut, dims_exp, dims_cna, dims_meth, fprint_dim, dense_layer_dim):
-#         super(DeepDEP, self).__init__()
-#         self.vae_mut = VAE(dims_mut[0], [1000, 100], 50)
-#         self.vae_exp = VAE(dims_exp[0], [500, 200], 50)
-#         self.vae_cna = VAE(dims_cna[0], [500, 200], 50)
-#         self.vae_meth = VAE(dims_meth[0], [500, 200], 50)
-
-#         self.fc_gene1 = nn.Linear(fprint_dim, 1000)
-#         self.fc_gene2 = nn.Linear(1000, 100)
-#         self.fc_gene3 = nn.Linear(100, 50)
-
-#         self.fc_merged1 = nn.Linear(250, dense_layer_dim)
-#         self.fc_merged2 = nn.Linear(dense_layer_dim, dense_layer_dim)
-#         self.fc_out = nn.Linear(dense_layer_dim, 1)
-
-#     def forward(self, mut, exp, cna, meth, fprint):
-#         z_mut, _, _ = self.vae_mut(mut)
-#         z_exp, _, _ = self.vae_exp(exp)
-#         z_cna, _, _ = self.vae_cna(cna)
-#         z_meth, _, _ = self.vae_meth(meth)
-        
-#         gene = torch.relu(self.fc_gene1(fprint))
-#         gene = torch.relu(self.fc_gene2(gene))
-#         gene = torch.relu(self.fc_gene3(gene))
-        
-#         merged = torch.cat([z_mut, z_exp, z_cna, z_meth, gene], dim=1)
-#         merged = torch.relu(self.fc_merged1(merged))
-#         merged = torch.relu(self.fc_merged2(merged))
-#         output = self.fc_out(merged)
-#         return output
-
 class VariationalAutoencoder(nn.Module):
     def __init__(self, input_dim, first_layer_dim, second_layer_dim, latent_dim):
         super(VariationalAutoencoder, self).__init__()
@@ -151,7 +96,7 @@ def plot_density(y_true_train, y_pred_train, y_pred_test, batch_size, learning_r
     plt.title(f'Density plot of Dependency Scores\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs} VAE')
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f'results/predictions/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
+    plt.savefig(f'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
     plt.show()
 
 def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, learning_rate, epochs):
@@ -190,11 +135,11 @@ def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_siz
     plt.text(0.1, 0.8, f'y = {coef_test[0]:.2f}x + {coef_test[1]:.2f}', color='red', transform=plt.gca().transAxes)
 
     plt.tight_layout()
-    plt.savefig(f'results/predictions/prediction_scatter_plots_{batch_size}_{learning_rate}_{epochs}_VAE.png')
+    plt.savefig(f'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/prediction_scatter_plots_{batch_size}_{learning_rate}_{epochs}_VAE.png')
     plt.show()
 
 if __name__ == '__main__':
-    model_name = "deepdep_vae_model_9July"  # "model_paper"
+    model_name = "best_model_vae_split_2"  # "model_paper"
     device = "mps"
     
     # Define the model architecture with correct dimensions
@@ -208,7 +153,7 @@ if __name__ == '__main__':
     model = DeepDEP(dims_mut, dims_exp, dims_cna, dims_meth, fprint_dim, dense_layer_dim).to(device)
 
     # Load the PyTorch model state dictionary
-    model.load_state_dict(torch.load(f"results/models/{model_name}.pth", map_location=device))
+    model.load_state_dict(torch.load(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/{model_name}.pth", map_location=device))
     model.eval()
 
     # Load TCGA genomics data and gene fingerprints
@@ -237,15 +182,15 @@ if __name__ == '__main__':
         data_pred[z] = np.transpose(data_pred_tmp)
         print("TCGA sample %d predicted..." % z)
 
-    y_true_train = np.loadtxt('results/predictions/y_true_train_CCL_VAE.txt', dtype=float)
-    y_pred_train = np.loadtxt('results/predictions/y_pred_train_CCL_VAE.txt', dtype=float)
-    y_true_test = np.loadtxt('results/predictions/y_true_test_CCL_VAE.txt', dtype=float)
-    y_pred_test = np.loadtxt('results/predictions/y_pred_test_CCL_VAE.txt', dtype=float)
+    y_true_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_train_CCL_VAE_Split_2.txt', dtype=float)
+    y_pred_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_train_CCL_VAE_Split_2.txt', dtype=float)
+    y_true_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_test_CCL_VAE_Split_2.txt', dtype=float)
+    y_pred_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_test_CCL_VAE_Split_2.txt', dtype=float)
 
     # Write prediction results to txt
     data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
-    data_pred_df.to_csv(f"results/predictions/tcga_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
+    data_pred_df.to_csv(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/tcga_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
     print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
 
-    plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),5000,1e-4,20)
-    plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, 5000, 1e-4, 20)
+    plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),batch_size,1e-4,100)
+    plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, 1e-4, 100)
