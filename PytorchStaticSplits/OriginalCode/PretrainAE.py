@@ -33,13 +33,12 @@ def load_split(split_num, omic, base_path=''):
 
     return train_data, val_data, test_data
 
-class VariationalAutoencoder(nn.Module):
+class Autoencoder(nn.Module):
     def __init__(self, input_dim, first_layer_dim, second_layer_dim, latent_dim):
-        super(VariationalAutoencoder, self).__init__()
+        super(Autoencoder, self).__init__()
         self.fc1 = nn.Linear(input_dim, first_layer_dim)
         self.fc2 = nn.Linear(first_layer_dim, second_layer_dim)
-        self.fc31 = nn.Linear(second_layer_dim, latent_dim)
-        self.fc32 = nn.Linear(second_layer_dim, latent_dim)
+        self.fc3 = nn.Linear(second_layer_dim, latent_dim)
         self.fc4 = nn.Linear(latent_dim, second_layer_dim)
         self.fc5 = nn.Linear(second_layer_dim, first_layer_dim)
         self.fc6 = nn.Linear(first_layer_dim, input_dim)
@@ -47,12 +46,7 @@ class VariationalAutoencoder(nn.Module):
     def encode(self, x):
         h1 = torch.relu(self.fc1(x))
         h2 = torch.relu(self.fc2(h1))
-        return self.fc31(h2), self.fc32(h2)
-
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        return mu + eps * std
+        return self.fc3(h2)
 
     def decode(self, z):
         h3 = torch.relu(self.fc4(z))
@@ -60,19 +54,13 @@ class VariationalAutoencoder(nn.Module):
         return self.fc6(h4)
 
     def forward(self, x):
-        mu, logvar = self.encode(x)
-        z = self.reparameterize(mu, logvar)
+        z = self.encode(x)
         recon_x = self.decode(z)
-        return recon_x, mu, logvar
+        return recon_x
 
-def vae_loss_function(recon_x, x, mu, logvar, data_name, recon_weight=1.0, kl_weight=1.0):
-    if data_name == "mut":
-        recon_loss = recon_weight * nn.functional.binary_cross_entropy_with_logits(recon_x, x, reduction='sum')
-    else:
-        recon_loss = recon_weight * nn.functional.mse_loss(recon_x, x, reduction='sum')
-
-    kl_loss = kl_weight * -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    return recon_loss + kl_loss, recon_loss, kl_loss
+def ae_loss_function(recon_x, x, data_name, recon_weight=1.0):
+    recon_loss = recon_weight * nn.functional.mse_loss(recon_x, x, reduction='sum')
+    return recon_loss
 
 def save_weights_to_pickle(model, file_name):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
@@ -85,7 +73,8 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_path = ""  # Adjust this path if needed
 
-    omics = ["cna", "exp", "meth"]
+    # omics = ["cna", "exp", "meth"]
+    omics = ["mut"]
 
     for omic in omics:
         print("Omic : ",omic)
@@ -111,7 +100,7 @@ if __name__ == '__main__':
             val_loader = DataLoader(val_data, batch_size=config.batch_size, shuffle=False)
             test_loader = DataLoader(test_data, batch_size=config.batch_size, shuffle=False)
 
-            model = VariationalAutoencoder(input_dim=config.input_dim, first_layer_dim=config.first_layer_dim, second_layer_dim=config.second_layer_dim, latent_dim=config.latent_dim)
+            model = Autoencoder(input_dim=config.input_dim, first_layer_dim=config.first_layer_dim, second_layer_dim=config.second_layer_dim, latent_dim=config.latent_dim)
             model.to(device)
             optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
@@ -125,8 +114,8 @@ if __name__ == '__main__':
                 for data in train_loader:
                     inputs = data[0].to(device)
                     optimizer.zero_grad()
-                    recon_batch, mu, logvar = model(inputs)
-                    loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic)
+                    recon_batch = model(inputs)
+                    loss = ae_loss_function(recon_batch, inputs, omic)
                     loss.backward()
                     train_loss += loss.item()
                     optimizer.step()
@@ -134,19 +123,13 @@ if __name__ == '__main__':
 
                 model.eval()
                 val_loss = 0
-                val_recon_loss = 0
-                val_kl_loss = 0
                 with torch.no_grad():
                     for data in val_loader:
                         inputs = data[0].to(device)
-                        recon_batch, mu, logvar = model(inputs)
-                        loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic)
-                        val_recon_loss += recon_loss.item()
-                        val_kl_loss += kl_loss.item()
+                        recon_batch = model(inputs)
+                        loss = ae_loss_function(recon_batch, inputs, omic)
                         val_loss += loss.item()
                 val_loss /= len(val_loader.dataset)
-                val_recon_loss /= len(val_loader.dataset) 
-                val_kl_loss /= len(val_loader.dataset) 
 
                 wandb.log({
                     "train_loss": train_loss,
@@ -154,45 +137,34 @@ if __name__ == '__main__':
                     "learning_rate": config.learning_rate,
                     "batch_size": config.batch_size,
                     "epoch": epoch + 1,
-                    "val_recon_loss": val_recon_loss,
-                    "val_kl_loss": val_kl_loss
                 })
 
-                print(f'Epoch [{epoch + 1}/{config.epochs}], Train Loss: {train_loss:.6f}, Validation Loss: {val_loss:.6f}, Recon Loss: {val_recon_loss:.6f}, KL Loss: {val_kl_loss:.6f}')
+                print(f'Epoch [{epoch + 1}/{config.epochs}], Train Loss: {train_loss:.6f}, Validation Loss: {val_loss:.6f}')
 
                 # Early stopping
                 if val_loss < best_loss:
                     best_loss = val_loss
                     early_stop_counter = 0
                     # Save the model's best weights
-                    save_weights_to_pickle(model, f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}.pickle')
+                    save_weights_to_pickle(model, f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_ae_best_split_{split_num}.pickle')
 
-            print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
+            print('\nAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 
             # Evaluate the model on the test set
             model.eval()
             test_loss = 0
-            test_recon_loss = 0
-            test_kl_loss = 0
             with torch.no_grad():
                 for data in test_loader:
                     inputs = data[0].to(device)
-                    recon_batch, mu, logvar = model(inputs)
-                    loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic)
-                    test_recon_loss += recon_loss.item()
-                    test_kl_loss += kl_loss.item()
+                    recon_batch = model(inputs)
+                    loss = ae_loss_function(recon_batch, inputs, omic)
                     test_loss += loss.item()
             test_loss /= len(test_loader.dataset)
-            test_recon_loss /= len(test_loader.dataset)
-            test_kl_loss /= len(test_loader.dataset)
 
             wandb.log({
-                "test_loss": test_loss,
-                "test_recon_loss_final": test_recon_loss,
-                "test_kl_loss_final": test_kl_loss
+                "test_loss": test_loss
             })
 
-            print(f'\nTest Loss: {test_loss:.6f}, Test Recon Loss: {test_recon_loss:.6f}, Test KL Loss: {test_kl_loss:.6f}')
+            print(f'\nTest Loss: {test_loss:.6f}')
 
             run.finish()
-
