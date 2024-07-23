@@ -153,16 +153,16 @@ if __name__ == '__main__':
             #     'val':val_dataset[:][0],
             #     'test':test_dataset[:][0]
             #     }
-            # 'exp': {
-            #     'train':train_dataset[:][1],
-            #     'val':val_dataset[:][1],
-            #     'test':test_dataset[:][1]
-            #     },
-            'cna': {
-                'train':train_dataset[:][2],
-                'val':val_dataset[:][2],
-                'test':test_dataset[:][2]
+            'exp': {
+                'train':train_dataset[:][1],
+                'val':val_dataset[:][1],
+                'test':test_dataset[:][1]
                 },
+            # 'cna': {
+            #     'train':train_dataset[:][2],
+            #     'val':val_dataset[:][2],
+            #     'test':test_dataset[:][2]
+            #     },
             # 'meth': {
             #     'train':train_dataset[:][3],
             #     'val':val_dataset[:][3],

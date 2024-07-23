@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 import time
 from keras import models
-from keras.layers import Dense, Concatenate
+from keras.layers import Dense, Concatenate, Input
 from keras.callbacks import EarlyStopping
 import wandb
 from datetime import datetime
@@ -11,17 +11,17 @@ from scipy.stats import pearsonr
 
 # Function to load saved splits
 def load_split(split_num):
-    with open(f'data_split_{split_num}.pickle', 'rb') as f:
+    with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
         train_dataset, val_dataset, test_dataset = pickle.load(f)
     return train_dataset, val_dataset, test_dataset
 
-for split_num in range(1, 6):
+for split_num in range(2, 6):
 
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_278CCL_{current_time}_MAE_Split_{split_num}")
+    run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_278CCL_{current_time}_Original_Split_{split_num}")
 
     # Example of loading split 1
-    train_dataset, val_dataset, test_dataset = load_split(1)
+    train_dataset, val_dataset, test_dataset = load_split(split_num)
 
     # Create DataLoaders
     batch_size = 10000
@@ -67,41 +67,41 @@ for split_num in range(1, 6):
     num_epoch = 100
     num_DepOI = 1298
 
-    # Define your models using the same structure as your original script
-    # Subnetworks
-    model_mut = models.Sequential()
-    model_mut.add(Dense(1000, input_dim=premodel_mut[0][0].shape[0], activation=activation_func, weights=premodel_mut[0], trainable=True))
-    model_mut.add(Dense(100, activation=activation_func, weights=premodel_mut[1], trainable=True))
-    model_mut.add(Dense(50, activation=activation_func, weights=premodel_mut[2], trainable=True))
+    # Giriş katmanlarını tanımla
+    input_mut = Input(shape=(premodel_mut[0][0].shape[0],))
+    input_exp = Input(shape=(premodel_exp[0][0].shape[0],))
+    input_cna = Input(shape=(premodel_cna[0][0].shape[0],))
+    input_meth = Input(shape=(premodel_meth[0][0].shape[0],))
+    input_gene = Input(shape=(data_fprint_train.shape[1],))
 
-    model_exp = models.Sequential()
-    model_exp.add(Dense(500, input_dim=premodel_exp[0][0].shape[0], activation=activation_func, weights=premodel_exp[0], trainable=True))
-    model_exp.add(Dense(200, activation=activation_func, weights=premodel_exp[1], trainable=True))
-    model_exp.add(Dense(50, activation=activation_func, weights=premodel_exp[2], trainable=True))
+    # Alt ağları tanımla
+    model_mut = Dense(1000, activation=activation_func)(input_mut)
+    model_mut = Dense(100, activation=activation_func)(model_mut)
+    model_mut = Dense(50, activation=activation_func)(model_mut)
 
-    model_cna = models.Sequential()
-    model_cna.add(Dense(500, input_dim=premodel_cna[0][0].shape[0], activation=activation_func, weights=premodel_cna[0], trainable=True))
-    model_cna.add(Dense(200, activation=activation_func, weights=premodel_cna[1], trainable=True))
-    model_cna.add(Dense(50, activation=activation_func, weights=premodel_cna[2], trainable=True))
+    model_exp = Dense(500, activation=activation_func)(input_exp)
+    model_exp = Dense(200, activation=activation_func)(model_exp)
+    model_exp = Dense(50, activation=activation_func)(model_exp)
 
-    model_meth = models.Sequential()
-    model_meth.add(Dense(500, input_dim=premodel_meth[0][0].shape[0], activation=activation_func, weights=premodel_meth[0], trainable=True))
-    model_meth.add(Dense(200, activation=activation_func, weights=premodel_meth[1], trainable=True))
-    model_meth.add(Dense(50, activation=activation_func, weights=premodel_meth[2], trainable=True))
+    model_cna = Dense(500, activation=activation_func)(input_cna)
+    model_cna = Dense(200, activation=activation_func)(model_cna)
+    model_cna = Dense(50, activation=activation_func)(model_cna)
 
-    model_gene = models.Sequential()
-    model_gene.add(Dense(1000, input_dim=data_fprint_train.shape[1], activation=activation_func, kernel_initializer=init, trainable=True))
-    model_gene.add(Dense(100, activation=activation_func, kernel_initializer=init, trainable=True))
-    model_gene.add(Dense(50, activation=activation_func, kernel_initializer=init, trainable=True))
+    model_meth = Dense(500, activation=activation_func)(input_meth)
+    model_meth = Dense(200, activation=activation_func)(model_meth)
+    model_meth = Dense(50, activation=activation_func)(model_meth)
 
-    # Final model
-    input_layers = [model_mut.input, model_exp.input, model_cna.input, model_meth.input, model_gene.input]
-    merged = Concatenate()(input_layers)
+    model_gene = Dense(1000, activation=activation_func, kernel_initializer=init)(input_gene)
+    model_gene = Dense(100, activation=activation_func, kernel_initializer=init)(model_gene)
+    model_gene = Dense(50, activation=activation_func, kernel_initializer=init)(model_gene)
+
+    # Alt ağları birleştir
+    merged = Concatenate()([model_mut, model_exp, model_cna, model_meth, model_gene])
     x = Dense(dense_layer_dim, activation=activation_func, kernel_initializer=init)(merged)
     x = Dense(dense_layer_dim, activation=activation_func, kernel_initializer=init)(x)
     output = Dense(1, activation=activation_func2, kernel_initializer=init)(x)
 
-    model_final = models.Model(inputs=input_layers, outputs=output)
+    model_final = models.Model(inputs=[input_mut, input_exp, input_cna, input_meth, input_gene], outputs=output)
 
     # Compile and train the model
     model_final.compile(loss='mse', optimizer='adam')
@@ -121,10 +121,15 @@ for split_num in range(1, 6):
         # Log metrics to wandb
         train_loss = history.model.history.history['loss'][-1]
         val_loss = history.model.history.history['val_loss'][-1]
+
+        print("Validation predict")
         
         # Calculate Pearson correlation for validation set
         val_predictions = model_final.predict([data_mut_val, data_exp_val, data_cna_val, data_meth_val, data_fprint_val])
         pearson_corr_val, _ = pearsonr(val_predictions.flatten(), data_dep_val.flatten())
+
+        print(f"Val Pearson correlation: {pearson_corr_val}")
+
         
         wandb.log({
             "train_loss": train_loss,
