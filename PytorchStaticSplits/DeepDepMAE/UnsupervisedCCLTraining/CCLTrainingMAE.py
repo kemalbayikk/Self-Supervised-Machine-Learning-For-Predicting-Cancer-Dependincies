@@ -38,7 +38,7 @@ class MaskedAutoencoder(nn.Module):
         return reconstructed, mask
 
 def mae_loss_function(recon_x, x, mask, data_name):
-    if data_name == "mut":
+    if data_name == "mut" or data_name == "fprint":
         loss = nn.functional.binary_cross_entropy_with_logits(recon_x * mask.float(), x * mask.float(), reduction='sum') / mask.float().sum()
     else:
         loss = nn.functional.mse_loss(recon_x * mask.float(), x * mask.float(), reduction='sum') / mask.float().sum()
@@ -57,7 +57,7 @@ def train_mae(model, train_loader, val_loader, num_epochs, learning_rate, device
             inputs = data[0].to(device)
             optimizer.zero_grad()
             recon_batch, mask = model(inputs)
-            loss = mae_loss_function(recon_batch, inputs, mask)
+            loss = mae_loss_function(recon_batch, inputs, mask, data_name)
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
@@ -72,7 +72,7 @@ def train_mae(model, train_loader, val_loader, num_epochs, learning_rate, device
             for data in val_loader:
                 inputs = data[0].to(device)
                 recon_batch, mask = model(inputs)
-                loss = mae_loss_function(recon_batch, inputs, mask)
+                loss = mae_loss_function(recon_batch, inputs, mask, data_name)
                 val_loss += loss.item()
         val_loss /= len(val_loader.dataset)
         val_recon_loss /= len(val_loader.dataset) 
@@ -105,7 +105,7 @@ def evaluate_mae(model, test_loader, device, data_name):
         for data in test_loader:
             inputs = data[0].to(device)
             recon_batch, mask = model(inputs)
-            loss = mae_loss_function(recon_batch, inputs, mask)
+            loss = mae_loss_function(recon_batch, inputs, mask, data_name)
             test_loss += loss.item()
     test_loss /= len(test_loader.dataset)
     test_recon_loss /= len(test_loader.dataset)
@@ -158,21 +158,21 @@ if __name__ == '__main__':
             #     'val':val_dataset[:][1],
             #     'test':test_dataset[:][1]
             #     },
-            # 'cna': {
-            #     'train':train_dataset[:][2],
-            #     'val':val_dataset[:][2],
-            #     'test':test_dataset[:][2]
-            #     },
+            'cna': {
+                'train':train_dataset[:][2],
+                'val':val_dataset[:][2],
+                'test':test_dataset[:][2]
+                },
             # 'meth': {
             #     'train':train_dataset[:][3],
             #     'val':val_dataset[:][3],
             #     'test':test_dataset[:][3]
             #     },
-            'fprint': {
-                'train':train_dataset[:][4],
-                'val':val_dataset[:][4],
-                'test':test_dataset[:][4]
-                },
+            # 'fprint': {
+            #     'train':train_dataset[:][4],
+            #     'val':val_dataset[:][4],
+            #     'test':test_dataset[:][4]
+            #     },
         }
 
         for data_type, data_ccl in data_dict.items():
