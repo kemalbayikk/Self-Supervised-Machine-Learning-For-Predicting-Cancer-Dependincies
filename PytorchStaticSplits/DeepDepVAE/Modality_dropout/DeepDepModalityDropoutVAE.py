@@ -127,7 +127,8 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             
             # Dropout maskesi oluştur
             # drop_mask = [torch.rand(1).item() < p_drop for _ in range(4)] + [False]
-            drop_mask = [0,0,0,0,1]
+            drop_mask = [torch.rand(1).item() < p_drop for _ in range(5)]
+            # drop_mask = [0,0,0,0,1]
 
             # Drop maskesi bilgisini yazdır
             # masked_vaes = ['mut', 'exp', 'cna', 'meth', 'fprint']
@@ -173,7 +174,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
         wandb.log({
             "train_loss": train_loss,
             "val_loss": val_loss,
-            "pearson_correlation": pearson_corr,
+            "val_pearson_correlation": pearson_corr,
             "learning_rate": optimizer.param_groups[0]['lr'],
             "batch_size": train_loader.batch_size,
             "epoch": epoch + 1
@@ -183,7 +184,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'best_model_vae_64batch_without_fprint.pth')
+            torch.save(best_model_state_dict, 'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/best_model_vae_modality_dropout_newVAE_withsplit3.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -197,7 +198,38 @@ def test_model(model, test_loader, device):
         [0, 0, 1, 0, 0],  # cna kapalı
         [0, 0, 0, 1, 0],  # meth kapalı
         [0, 0, 0, 0, 1],  # fprint kapalı
-        [0, 0, 0, 0, 0]   # Hiçbiri kapalı değil (referans)
+        [0, 0, 0, 0, 0],  # Hiçbiri kapalı değil (referans)
+        [0, 0, 0, 0, 1],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 1, 1],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 1],
+        [0, 0, 1, 1, 0],
+        [0, 0, 1, 1, 1],
+        [0, 1, 0, 0, 0],
+        [0, 1, 0, 0, 1],
+        [0, 1, 0, 1, 0],
+        [0, 1, 0, 1, 1],
+        [0, 1, 1, 0, 0],
+        [0, 1, 1, 0, 1],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 1, 0],
+        [1, 0, 0, 1, 1],
+        [1, 0, 1, 0, 0],
+        [1, 0, 1, 0, 1],
+        [1, 0, 1, 1, 0],
+        [1, 0, 1, 1, 1],
+        [1, 1, 0, 0, 0],
+        [1, 1, 0, 0, 1],
+        [1, 1, 0, 1, 0],
+        [1, 1, 0, 1, 1],
+        [1, 1, 1, 0, 0],
+        [1, 1, 1, 0, 1],
+        [1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1]
     ]
 
     results = {}
@@ -230,10 +262,10 @@ def test_model(model, test_loader, device):
 if __name__ == '__main__':
     ccl_size = "278"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
-        data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
+    with open(f'Data/data_split_3.pickle', 'rb') as f:
+            train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_64batch_input_dropout_without_fprint")
+    wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_Modality_Dropout_NewVAE_withsplit3")
 
     config = wandb.config
     config.learning_rate = 1e-4
@@ -242,48 +274,27 @@ if __name__ == '__main__':
     config.patience = 3
     config.p_drop = 0.5  # Dropout olasılığı
 
-    # Define dimensions for the pretrained VAEs
-    dims_mut = (data_mut.shape[1], 1000, 100, 50)
-    dims_exp = (data_exp.shape[1], 500, 200, 50)
-    dims_cna = (data_cna.shape[1], 500, 200, 50)
-    dims_meth = (data_meth.shape[1], 500, 200, 50)
-    dims_fprint = (data_fprint.shape[1], 1000, 100, 50)
+        # Define dimensions for the pretrained VAEs
+    dims_mut = (train_dataset[:][0].shape[1], 1000, 100, 50)
+    dims_exp = (train_dataset[:][1].shape[1], 500, 200, 50)
+    dims_cna = (train_dataset[:][2].shape[1], 500, 200, 50)
+    dims_meth = (train_dataset[:][3].shape[1], 500, 200, 50)
+    dims_fprint = (train_dataset[:][4].shape[1], 1000, 100, 50)
 
     # Load pre-trained VAE models    
-    premodel_mut = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_mut_vae_64batch.pickle', *dims_mut)
-    premodel_exp = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_exp_vae_64batch.pickle', *dims_exp)
-    premodel_cna = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_cna_vae_64batch.pickle', *dims_cna)
-    premodel_meth = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_meth_vae_64batch.pickle', *dims_meth)
-    premodel_fprint = load_pretrained_vae('results/variational_autoencoders/premodel_ccl_fprint_vae_64batch.pickle', *dims_fprint)
-
-    # Convert numpy arrays to PyTorch tensors and create datasets
-    tensor_mut = torch.tensor(data_mut, dtype=torch.float32)
-    tensor_exp = torch.tensor(data_exp, dtype=torch.float32)
-    tensor_cna = torch.tensor(data_cna, dtype=torch.float32)
-    tensor_meth = torch.tensor(data_meth, dtype=torch.float32)
-    tensor_dep = torch.tensor(data_dep, dtype=torch.float32)
-    tensor_fprint = torch.tensor(data_fprint, dtype=torch.float32)
-
-    dataset = TensorDataset(tensor_mut, tensor_exp, tensor_cna, tensor_meth, tensor_fprint, tensor_dep)
-
-    # Train/val/test split
-    train_size = int(0.8 * len(dataset))
-    val_size = int(0.1 * len(dataset))
-    test_size = len(dataset) - train_size - val_size
-    train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
-
-    print("Train size : ", train_size)
-    print("Validation size : ", val_size)
-    print("Test size : ", test_size)
+    premodel_mut = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_mut)
+    premodel_exp = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_exp)
+    premodel_cna = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_cna)
+    premodel_meth = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_meth)
+    premodel_fprint = VariationalAutoencoder(input_dim=train_dataset[:][4].shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
 
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
 
     # Create the DeepDEP model using the pretrained VAE models
     model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 250)
-    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, config.p_drop)
-
+    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate)
     # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
     model.load_state_dict(best_model_state_dict)
     
@@ -296,11 +307,11 @@ if __name__ == '__main__':
         })
         
         # Tahmin ve gerçek değerleri kaydetme
-        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_mask_{mask}_input_dropout_without_fprint.txt', res['targets'], fmt='%.6f')
-        np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_mask_{mask}_input_dropout_without_fprint.txt', res['predictions'], fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_test_mask_{mask}_VAE_Modality_Dropout_NewVAE_withsplit3.txt', res['targets'], fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_test_mask_{mask}_VAE_Modality_Dropout_NewVAE_withsplit3.txt', res['predictions'], fmt='%.6f')
 
     # Save the best model
-    torch.save(best_model_state_dict, 'results/models/deepdep_vae_model_64batch_input_dropout.pth')
+    torch.save(best_model_state_dict, 'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/deepdep_vae_model_modality_dropout_NewVAE_split3.pth')
 
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
@@ -308,10 +319,10 @@ if __name__ == '__main__':
     y_true_test = results["0_0_0_0_0"]["targets"].flatten()  # Hiçbir modalite kapalı değilken
     y_pred_test = results["0_0_0_0_0"]["predictions"].flatten()  # Hiçbir modalite kapalı değilken
 
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_train_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_train_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_true_test_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'results/predictions/Variational Autoencoders/Predictions/y_pred_test_CCL_VAE_64batch_Input_Dropout_without_fprint.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_train_VAE_Modality_Dropout_NewVAE_withsplit3.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_train_VAE_Modality_Dropout_NewVAE_withsplit3.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_test_VAE_Modality_Dropout_NewVAE_withsplit3.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_test_VAE_Modality_Dropout_NewVAE_withsplit3.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
