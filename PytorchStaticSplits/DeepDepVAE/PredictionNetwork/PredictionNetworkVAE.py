@@ -29,8 +29,8 @@ class VariationalAutoencoder(nn.Module):
         h2 = torch.relu(self.fc2(h1))
         return self.fc31(h2), self.fc32(h2)
 
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
+    def reparameterize(self, mu, logvar, var_scale=1.0):
+        std = torch.exp(0.5 * logvar * var_scale)
         eps = torch.randn_like(std)
         return mu + eps * std
 
@@ -74,12 +74,12 @@ class DeepDEP(nn.Module):
 def load_pretrained_vae(filepath, input_dim, first_layer_dim, second_layer_dim, latent_dim):
     vae = VariationalAutoencoder(input_dim, first_layer_dim, second_layer_dim, latent_dim)
     vae_state = pickle.load(open(filepath, 'rb'))
-    
+
     # Convert numpy arrays to PyTorch tensors
     for key in vae_state:
         if isinstance(vae_state[key], np.ndarray):
             vae_state[key] = torch.tensor(vae_state[key])
-    
+
     vae.load_state_dict(vae_state)
     return vae
 
@@ -163,7 +163,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
 
 if __name__ == '__main__':
 
-    for split_num in range(1, 6):
+    for split_num in range(1, 4):
 
         ccl_size = "278"
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -195,7 +195,7 @@ if __name__ == '__main__':
         premodel_exp = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}.pickle', *dims_exp)
         premodel_cna = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}.pickle', *dims_cna)
         premodel_meth = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}.pickle', *dims_meth)
-        premodel_fprint = VariationalAutoencoder(input_dim=dims_fprint, first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
+        premodel_fprint = VariationalAutoencoder(input_dim=train_dataset[:][4].shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
 
         # # Convert numpy arrays to PyTorch tensors and create datasets
         # tensor_mut_train = torch.tensor(train_dataset[:][0], dtype=torch.float32)
