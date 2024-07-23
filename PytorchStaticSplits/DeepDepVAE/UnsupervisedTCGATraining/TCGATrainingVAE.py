@@ -65,13 +65,13 @@ class VariationalAutoencoder(nn.Module):
         recon_x = self.decode(z)
         return recon_x, mu, logvar
 
-def vae_loss_function(recon_x, x, mu, logvar, data_name, recon_weight=1.0, kl_weight=1.0):
+def vae_loss_function(recon_x, x, mu, logvar, data_name, beta):
     if data_name == "mut":
-        recon_loss = recon_weight * nn.functional.binary_cross_entropy_with_logits(recon_x, x, reduction='sum')
+        recon_loss = nn.functional.binary_cross_entropy_with_logits(recon_x, x, reduction='sum')
     else:
-        recon_loss = recon_weight * nn.functional.mse_loss(recon_x, x, reduction='sum')
+        recon_loss = nn.functional.mse_loss(recon_x, x, reduction='sum')
 
-    kl_loss = kl_weight * -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    kl_loss = beta * -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     return recon_loss + kl_loss, recon_loss, kl_loss
 
 def save_weights_to_pickle(model, file_name):
@@ -85,21 +85,22 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_path = ""  # Adjust this path if needed
 
-    omics = ["cna", "exp", "meth"]
+    omics = ["mut"]
 
     for omic in omics:
         print("Omic : ",omic)
         for split_num in range(1, 6):
-            run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}")
+            run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_beta050")
 
             config = wandb.config
             config.learning_rate = 1e-4
             config.batch_size = 500
             config.epochs = 100
             config.patience = 10
-            config.first_layer_dim = 500
-            config.second_layer_dim = 200
+            config.first_layer_dim = 1000
+            config.second_layer_dim = 100
             config.latent_dim = 50
+            config.beta = 0.25
 
             device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -126,7 +127,7 @@ if __name__ == '__main__':
                     inputs = data[0].to(device)
                     optimizer.zero_grad()
                     recon_batch, mu, logvar = model(inputs)
-                    loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic)
+                    loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic, config.beta)
                     loss.backward()
                     train_loss += loss.item()
                     optimizer.step()
@@ -140,7 +141,7 @@ if __name__ == '__main__':
                     for data in val_loader:
                         inputs = data[0].to(device)
                         recon_batch, mu, logvar = model(inputs)
-                        loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic)
+                        loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic, config.beta)
                         val_recon_loss += recon_loss.item()
                         val_kl_loss += kl_loss.item()
                         val_loss += loss.item()
@@ -155,7 +156,8 @@ if __name__ == '__main__':
                     "batch_size": config.batch_size,
                     "epoch": epoch + 1,
                     "val_recon_loss": val_recon_loss,
-                    "val_kl_loss": val_kl_loss
+                    "val_kl_loss": val_kl_loss,
+                    "beta": config.beta
                 })
 
                 print(f'Epoch [{epoch + 1}/{config.epochs}], Train Loss: {train_loss:.6f}, Validation Loss: {val_loss:.6f}, Recon Loss: {val_recon_loss:.6f}, KL Loss: {val_kl_loss:.6f}')
@@ -165,7 +167,7 @@ if __name__ == '__main__':
                     best_loss = val_loss
                     early_stop_counter = 0
                     # Save the model's best weights
-                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}.pickle')
+                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}_beta050.pickle')
 
             print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 
@@ -178,7 +180,7 @@ if __name__ == '__main__':
                 for data in test_loader:
                     inputs = data[0].to(device)
                     recon_batch, mu, logvar = model(inputs)
-                    loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic)
+                    loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, omic, config.beta)
                     test_recon_loss += recon_loss.item()
                     test_kl_loss += kl_loss.item()
                     test_loss += loss.item()
