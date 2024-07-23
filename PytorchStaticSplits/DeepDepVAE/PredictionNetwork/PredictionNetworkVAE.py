@@ -156,14 +156,14 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/PredictionNetworkModels/best_model_vae_split_{split_num}_withoutCCLPretraining.pth')
+            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/PredictionNetworkModels/best_model_vae_split_{split_num}_withoutCCLPretraining_beta025.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
 
 if __name__ == '__main__':
 
-    for split_num in range(1, 4):
+    for split_num in range(1, 6):
 
         ccl_size = "278"
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -173,7 +173,7 @@ if __name__ == '__main__':
         with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
             train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-        run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_VAE_Split_{split_num}_withoutCCLPretraining")
+        run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_VAE_Split_{split_num}_withoutCCLPretraining_Beta025")
 
         config = wandb.config
         config.learning_rate = 1e-4
@@ -191,10 +191,10 @@ if __name__ == '__main__':
         dims_fprint = (train_dataset[:][4].shape[1], 1000, 100, 50)
 
         # Load pre-trained VAE models    
-        premodel_mut = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_mut_vae_best_split_{split_num}.pickle', *dims_mut)
-        premodel_exp = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}.pickle', *dims_exp)
-        premodel_cna = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}.pickle', *dims_cna)
-        premodel_meth = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}.pickle', *dims_meth)
+        premodel_mut = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_mut_vae_best_split_{split_num}_beta025.pickle', *dims_mut)
+        premodel_exp = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}_beta025.pickle', *dims_exp)
+        premodel_cna = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}_beta025.pickle', *dims_cna)
+        premodel_meth = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}_beta025.pickle', *dims_meth)
         premodel_fprint = VariationalAutoencoder(input_dim=train_dataset[:][4].shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
 
         # # Convert numpy arrays to PyTorch tensors and create datasets
@@ -260,10 +260,10 @@ if __name__ == '__main__':
         y_true_test = np.array(targets_list).flatten()
         y_pred_test = np.array(predictions).flatten()
 
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_train_CCL_VAE_Split_{split_num}_withoutCCLPretraining.txt', y_true_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_train_CCL_VAE_Split_{split_num}_withoutCCLPretraining.txt', y_pred_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_test_CCL_VAE_Split_{split_num}_withoutCCLPretraining.txt', y_true_test, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_test_CCL_VAE_Split_{split_num}_withoutCCLPretraining.txt', y_pred_test, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_train_CCL_VAE_Split_{split_num}_withoutCCLPretraining_beta025.txt', y_true_train, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_train_CCL_VAE_Split_{split_num}_withoutCCLPretraining_beta025.txt', y_pred_train, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_test_CCL_VAE_Split_{split_num}_withoutCCLPretraining_beta025.txt', y_true_test, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_test_CCL_VAE_Split_{split_num}_withoutCCLPretraining_beta025.txt', y_pred_test, fmt='%.6f')
 
         print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
         print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
