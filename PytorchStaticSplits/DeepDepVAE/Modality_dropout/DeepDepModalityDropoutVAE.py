@@ -282,10 +282,10 @@ if __name__ == '__main__':
     dims_fprint = (train_dataset[:][4].shape[1], 1000, 100, 50)
 
     # Load pre-trained VAE models    
-    premodel_mut = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_mut)
-    premodel_exp = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_exp)
+    premodel_mut = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_mut_vae_best_split_3.pickle', *dims_mut)
+    premodel_exp = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_exp_vae_best_split_3.pickle', *dims_exp)
     premodel_cna = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_cna)
-    premodel_meth = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_cna_vae_best_split_3.pickle', *dims_meth)
+    premodel_meth = load_pretrained_vae('PytorchStaticSplits/DeepDepVAE/Results/Split3/USL_Pretrained/tcga_meth_vae_best_split_3.pickle', *dims_meth)
     premodel_fprint = VariationalAutoencoder(input_dim=train_dataset[:][4].shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
 
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
@@ -294,7 +294,7 @@ if __name__ == '__main__':
 
     # Create the DeepDEP model using the pretrained VAE models
     model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 250)
-    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate)
+    best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, config.p_drop )
     # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
     model.load_state_dict(best_model_state_dict)
     
