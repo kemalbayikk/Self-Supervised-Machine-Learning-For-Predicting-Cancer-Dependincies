@@ -75,8 +75,8 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_path = ""  # Adjust this path if needed
 
-    omics = ["cna", "exp", "meth"]
-    # omics = ["mut"]
+    # omics = ["cna", "exp", "meth"]
+    omics = ["mut"]
 
     for omic in omics:
         print("Omic : ",omic)
@@ -88,8 +88,8 @@ if __name__ == '__main__':
             config.batch_size = 500
             config.epochs = 100
             config.patience = 10
-            config.first_layer_dim = 500
-            config.second_layer_dim = 200
+            config.first_layer_dim = 1000
+            config.second_layer_dim = 100
             config.latent_dim = 50
 
             device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -150,7 +150,7 @@ if __name__ == '__main__':
                     best_loss = val_loss
                     early_stop_counter = 0
                     # Save the model's best weights
-                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}.pickle')
+                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_mae_best_split_{split_num}.pickle')
 
             print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 
