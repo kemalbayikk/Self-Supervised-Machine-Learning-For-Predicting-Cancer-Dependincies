@@ -38,7 +38,7 @@ class MaskedAutoencoder(nn.Module):
         return reconstructed, mask
 
 def mae_loss_function(recon_x, x, mask, data_name):
-    if data_name == "mut":
+    if data_name == "mut" or data_name == "fprint":
         loss = nn.functional.binary_cross_entropy_with_logits(recon_x * mask.float(), x * mask.float(), reduction='sum') / mask.float().sum()
     else:
         loss = nn.functional.mse_loss(recon_x * mask.float(), x * mask.float(), reduction='sum') / mask.float().sum()
