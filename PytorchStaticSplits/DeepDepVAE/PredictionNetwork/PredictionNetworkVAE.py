@@ -156,7 +156,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/PredictionNetworkModels/best_model_vae_split_{split_num}_withoutCCLPretraining_beta025.pth')
+            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/PredictionNetworkModels/best_model_vae_split_{split_num}_withoutCCLPretraining.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list

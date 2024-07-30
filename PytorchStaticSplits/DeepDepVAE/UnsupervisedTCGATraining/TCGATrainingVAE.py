@@ -90,7 +90,7 @@ if __name__ == '__main__':
     for omic in omics:
         print("Omic : ",omic)
         for split_num in range(1, 6):
-            run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_beta025")
+            run = wandb.init(project="NeedExtraUnsupervisedCCL", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}")
 
             config = wandb.config
             config.learning_rate = 1e-4
@@ -100,7 +100,7 @@ if __name__ == '__main__':
             config.first_layer_dim = 1000
             config.second_layer_dim = 100
             config.latent_dim = 50
-            config.beta = 0.25
+            config.beta = 1
 
             device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
                     best_loss = val_loss
                     early_stop_counter = 0
                     # Save the model's best weights
-                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}_beta025.pickle')
+                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}.pickle')
 
             print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 
