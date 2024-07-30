@@ -75,21 +75,21 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_path = ""  # Adjust this path if needed
 
-    # omics = ["cna", "exp", "meth"]
-    omics = ["mut"]
+    omics = ["cna", "exp", "meth"]
+    # omics = ["mut"]
 
     for omic in omics:
         print("Omic : ",omic)
         for split_num in range(1, 6):
-            run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_MAE")
+            run = wandb.init(project="NeedExtraUnsupervisedCCL", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_MAE")
 
             config = wandb.config
             config.learning_rate = 1e-4
             config.batch_size = 500
             config.epochs = 100
             config.patience = 10
-            config.first_layer_dim = 1000
-            config.second_layer_dim = 100
+            config.first_layer_dim = 500
+            config.second_layer_dim = 200
             config.latent_dim = 50
 
             device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")

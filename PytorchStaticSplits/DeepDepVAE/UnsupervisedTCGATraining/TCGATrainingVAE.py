@@ -85,7 +85,7 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_path = ""  # Adjust this path if needed
 
-    omics = ["mut"]
+    omics = ["exp","cna","meth"]
 
     for omic in omics:
         print("Omic : ",omic)
@@ -97,8 +97,8 @@ if __name__ == '__main__':
             config.batch_size = 500
             config.epochs = 100
             config.patience = 10
-            config.first_layer_dim = 1000
-            config.second_layer_dim = 100
+            config.first_layer_dim = 500
+            config.second_layer_dim = 200
             config.latent_dim = 50
             config.beta = 1
 
