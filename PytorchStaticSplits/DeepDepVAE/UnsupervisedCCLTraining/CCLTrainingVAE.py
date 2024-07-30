@@ -170,7 +170,7 @@ if __name__ == '__main__':
             #     'train':train_dataset[:][0],
             #     'val':val_dataset[:][0],
             #     'test':test_dataset[:][0]
-            #     }
+            #     },  
             # 'exp': {
             #     'train':train_dataset[:][1],
             #     'val':val_dataset[:][1],
@@ -181,22 +181,22 @@ if __name__ == '__main__':
             #     'val':val_dataset[:][2],
             #     'test':test_dataset[:][2]
             #     },
-            # 'meth': {
-            #     'train':train_dataset[:][3],
-            #     'val':val_dataset[:][3],
-            #     'test':test_dataset[:][3]
-            #     },
-            'fprint': {
-                'train':train_dataset[:][4],
-                'val':val_dataset[:][4],
-                'test':test_dataset[:][4]
+            'meth': {
+                'train':train_dataset[:][3],
+                'val':val_dataset[:][3],
+                'test':test_dataset[:][3]
                 },
+            # 'fprint': {
+            #     'train':train_dataset[:][4],
+            #     'val':val_dataset[:][4],
+            #     'test':test_dataset[:][4]
+            #     },
         }
 
         for data_type, data_ccl in data_dict.items():
 
             print(data_ccl["train"])
-            run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}")
+            run = wandb.init(project="NeedExtraUnsupervisedCCL", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}")
 
             config = wandb.config
             config.learning_rate = 1e-4
@@ -243,4 +243,4 @@ if __name__ == '__main__':
         
         # Save model weights
         # save_weights_to_pickle(trained_vae, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/premodel_ccl_{data_type}_vae_split_{split_num}.pickle')
-        run.finish()
+            run.finish()
