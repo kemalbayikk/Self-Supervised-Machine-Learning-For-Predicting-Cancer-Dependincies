@@ -157,15 +157,15 @@ if __name__ == '__main__':
     model.eval()
 
     # Load TCGA genomics data and gene fingerprints
-    data_mut_tcga, data_labels_mut_tcga, sample_names_mut_tcga, gene_names_mut_tcga = load_data("Data/TCGA/tcga_mut_data_paired_with_ccl.txt")
-    data_exp_tcga, data_labels_exp_tcga, sample_names_exp_tcga, gene_names_exp_tcga = load_data("Data/TCGA/tcga_exp_data_paired_with_ccl.txt")
-    data_cna_tcga, data_labels_cna_tcga, sample_names_cna_tcga, gene_names_cna_tcga = load_data("Data/TCGA/tcga_cna_data_paired_with_ccl.txt")
-    data_meth_tcga, data_labels_meth_tcga, sample_names_meth_tcga, gene_names_meth_tcga = load_data("Data/TCGA/tcga_meth_data_paired_with_ccl.txt")
+    data_mut_tcga, data_labels_mut_tcga, sample_names_mut_tcga, gene_names_mut_tcga = load_data("Data/CCL/ccl_mut_data_paired_with_tcga.txt")
+    data_exp_tcga, data_labels_exp_tcga, sample_names_exp_tcga, gene_names_exp_tcga = load_data("Data/CCL/ccl_exp_data_paired_with_tcga.txt")
+    data_cna_tcga, data_labels_cna_tcga, sample_names_cna_tcga, gene_names_cna_tcga = load_data("Data/CCL/ccl_cna_data_paired_with_tcga.txt")
+    data_meth_tcga, data_labels_meth_tcga, sample_names_meth_tcga, gene_names_meth_tcga = load_data("Data/CCL/ccl_meth_data_paired_with_tcga.txt")
     data_fprint_1298DepOIs, data_labels_fprint, gene_names_fprint, function_names_fprint = load_data("Data/crispr_gene_fingerprint_cgp.txt")
     print("\n\nDatasets successfully loaded.\n\n")
 
     batch_size = 10000
-    first_to_predict = 8238
+    first_to_predict = 278
     data_pred = np.zeros((first_to_predict, data_fprint_1298DepOIs.shape[0]))
     
     t = time.time()
@@ -180,16 +180,16 @@ if __name__ == '__main__':
             data_pred_tmp = model(data_mut_batch, data_exp_batch, data_cna_batch, data_meth_batch, data_fprint_batch).cpu().numpy()
         
         data_pred[z] = np.transpose(data_pred_tmp)
-        print("TCGA sample %d predicted..." % z)
+        print("CCL sample %d predicted..." % z)
 
-    y_true_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_train_CCL_VAE_Split_2.txt', dtype=float)
-    y_pred_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_train_CCL_VAE_Split_2.txt', dtype=float)
-    y_true_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_test_CCL_VAE_Split_2.txt', dtype=float)
-    y_pred_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_test_CCL_VAE_Split_2.txt', dtype=float)
+    # y_true_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_train_CCL_VAE_Split_2.txt', dtype=float)
+    # y_pred_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_train_CCL_VAE_Split_2.txt', dtype=float)
+    # y_true_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_test_CCL_VAE_Split_2.txt', dtype=float)
+    # y_pred_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_test_CCL_VAE_Split_2.txt', dtype=float)
 
     # Write prediction results to txt
     data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
-    data_pred_df.to_csv(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/tcga_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
+    data_pred_df.to_csv(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/ccl_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
     print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
 
     # plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),batch_size,1e-4,100)
