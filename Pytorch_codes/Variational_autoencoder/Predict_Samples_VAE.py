@@ -192,5 +192,5 @@ if __name__ == '__main__':
     data_pred_df.to_csv(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/tcga_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
     print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
 
-    plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),batch_size,1e-4,100)
-    plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, 1e-4, 100)
+    # plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),batch_size,1e-4,100)
+    # plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, 1e-4, 100)
