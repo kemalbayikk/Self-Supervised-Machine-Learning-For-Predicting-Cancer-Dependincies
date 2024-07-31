@@ -45,16 +45,16 @@ class VariationalAutoencoder(nn.Module):
         recon_x = self.decode(z)
         return recon_x, mu, logvar
 
-def vae_loss_function(recon_x, x, mu, logvar, data_name, recon_weight=1.0, kl_weight=1.0):
+def vae_loss_function(recon_x, x, mu, logvar, data_name, beta):
     if data_name == "mut" or data_name == "fprint":
-        recon_loss = recon_weight * nn.functional.binary_cross_entropy_with_logits(recon_x, x, reduction='sum')
+        recon_loss = nn.functional.binary_cross_entropy_with_logits(recon_x, x, reduction='sum')
     else:
-        recon_loss = recon_weight * nn.functional.mse_loss(recon_x, x, reduction='sum')
+        recon_loss = nn.functional.mse_loss(recon_x, x, reduction='sum')
 
-    kl_loss = kl_weight * -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    kl_loss = beta * -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     return recon_loss + kl_loss, recon_loss, kl_loss
 
-def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device, data_name):
+def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device, data_name, beta):
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     model.to(device)
 
@@ -69,7 +69,7 @@ def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device
             inputs = data[0].to(device)
             optimizer.zero_grad()
             recon_batch, mu, logvar = model(inputs)
-            loss, _, _ = vae_loss_function(recon_batch, inputs, mu, logvar, data_name)
+            loss, _, _ = vae_loss_function(recon_batch, inputs, mu, logvar, data_name, beta)
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
@@ -98,7 +98,8 @@ def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device
             "train_loss": train_loss,
             "val_loss": val_loss,
             "val_recon_loss": val_recon_loss,
-            "val_kl_loss": val_kl_loss
+            "val_kl_loss": val_kl_loss,
+            "beta": beta
         })
 
         # Early stopping
@@ -106,11 +107,11 @@ def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device
             best_loss = val_loss
             early_stop_counter = 0
             # Save the model's best weights
-            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_vae_best_split_{split_num}.pickle')
+            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_vae_best_split_{split_num}_beta025.pickle')
 
     return model
 
-def evaluate_vae(model, test_loader, device, data_name):
+def evaluate_vae(model, test_loader, device, data_name, beta):
     model.eval()
     test_loss = 0
     test_recon_loss = 0
@@ -130,7 +131,8 @@ def evaluate_vae(model, test_loader, device, data_name):
     wandb.log({
         "test_loss": test_loss,
         "test_recon_loss": test_recon_loss,
-        "test_kl_loss": test_kl_loss
+        "test_kl_loss": test_kl_loss,
+        "beta": beta
     })
 
     print(f'Test Loss: {test_loss:.6f}, Test Recon Loss: {test_recon_loss:.6f}, Test KL Loss: {test_kl_loss:.6f}')
@@ -166,42 +168,43 @@ if __name__ == '__main__':
             train_dataset, val_dataset, test_dataset = pickle.load(f)
         
         data_dict = {
-            # 'mut': {
-            #     'train':train_dataset[:][0],
-            #     'val':val_dataset[:][0],
-            #     'test':test_dataset[:][0]
-            #     },  
-            # 'exp': {
-            #     'train':train_dataset[:][1],
-            #     'val':val_dataset[:][1],
-            #     'test':test_dataset[:][1]
-            #     },
-            # 'cna': {
-            #     'train':train_dataset[:][2],
-            #     'val':val_dataset[:][2],
-            #     'test':test_dataset[:][2]
-            #     },
+            'mut': {
+                'train':train_dataset[:][0],
+                'val':val_dataset[:][0],
+                'test':test_dataset[:][0]
+                },  
+            'exp': {
+                'train':train_dataset[:][1],
+                'val':val_dataset[:][1],
+                'test':test_dataset[:][1]
+                },
+            'cna': {
+                'train':train_dataset[:][2],
+                'val':val_dataset[:][2],
+                'test':test_dataset[:][2]
+                },
             'meth': {
                 'train':train_dataset[:][3],
                 'val':val_dataset[:][3],
                 'test':test_dataset[:][3]
                 },
-            # 'fprint': {
-            #     'train':train_dataset[:][4],
-            #     'val':val_dataset[:][4],
-            #     'test':test_dataset[:][4]
-            #     },
+            'fprint': {
+                'train':train_dataset[:][4],
+                'val':val_dataset[:][4],
+                'test':test_dataset[:][4]
+                },
         }
 
         for data_type, data_ccl in data_dict.items():
 
             print(data_ccl["train"])
-            run = wandb.init(project="NeedExtraUnsupervisedCCL", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}")
+            run = wandb.init(project="DeepDepVAEBetaTest", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}_beta025")
 
             config = wandb.config
             config.learning_rate = 1e-4
             config.batch_size = 10000
             config.epochs = epochs
+            config.beta = 0.25
 
             # Extract tensors from val_dataset and test_dataset
             train_tensors = torch.tensor(data_ccl["train"], dtype=torch.float32).to(device)
@@ -219,21 +222,21 @@ if __name__ == '__main__':
 
             # Define model dimensions and load pretrained VAEs
             if data_type == 'mut':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_pretrained/tcga_mut_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 1000, 100, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_pretrained/tcga_mut_vae_best_split_{split_num}_beta025.pickle', train_tensors.shape[1], 1000, 100, 50)
             elif data_type == 'exp':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}_beta025.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'cna':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}_beta025.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'meth':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}_beta025.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'fprint':
                 vae = VariationalAutoencoder(input_dim=train_tensors.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
             
             # Train VAE
-            trained_vae = train_vae(vae, train_loader, val_loader, num_epochs=config.epochs, learning_rate=config.learning_rate, device=device, data_name=data_type)
+            trained_vae = train_vae(vae, train_loader, val_loader, num_epochs=config.epochs, learning_rate=config.learning_rate, device=device, data_name=data_type, beta=config.beta)
 
             # Evaluate VAE on test set
-            evaluate_vae(trained_vae, test_loader, device, data_name=data_type)
+            evaluate_vae(trained_vae, test_loader, device, data_name=data_type, beta=config.beta)
 
             wandb.log({
                 "learning_rate": config.learning_rate,
