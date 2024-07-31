@@ -84,7 +84,7 @@ def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device
             for data in val_loader:
                 inputs = data[0].to(device)
                 recon_batch, mu, logvar = model(inputs)
-                loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, data_name)
+                loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, data_name, beta)
                 val_loss += loss.item()
                 val_recon_loss += recon_loss.item()
                 val_kl_loss += kl_loss.item()
@@ -120,7 +120,7 @@ def evaluate_vae(model, test_loader, device, data_name, beta):
         for data in test_loader:
             inputs = data[0].to(device)
             recon_batch, mu, logvar = model(inputs)
-            loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, data_name)
+            loss, recon_loss, kl_loss = vae_loss_function(recon_batch, inputs, mu, logvar, data_name, beta)
             test_loss += loss.item()
             test_recon_loss += recon_loss.item()
             test_kl_loss += kl_loss.item()
