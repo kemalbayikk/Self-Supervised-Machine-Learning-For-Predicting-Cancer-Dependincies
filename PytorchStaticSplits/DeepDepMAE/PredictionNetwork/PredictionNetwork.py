@@ -10,7 +10,6 @@ import wandb
 from datetime import datetime
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
-import seaborn as sns
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 # device = "cuda"
@@ -147,7 +146,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/best_model_mae_split_{split_num}.pth')
+            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/best_model_mae_split_{split_num}_LAST_AfterDecision.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -157,14 +156,14 @@ if __name__ == '__main__':
     for split_num in range(1, 6):
 
         ccl_size = "278"
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        current_time = datetime.now().strftime("%m-%d_%H-%M")
         # with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
         #     data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
         with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
             train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-        run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_MAE_Split_{split_num}")
+        run = wandb.init(project="Latest-Model-MAE-PredictionNetwork", entity="kemal-bayik", name=f"Prediction_Network_{current_time}_MAE_Split_{split_num}")
 
         config = wandb.config
         config.learning_rate = 1e-4
@@ -182,11 +181,11 @@ if __name__ == '__main__':
         dims_fprint = (train_dataset[:][4].shape[1], 1000, 100, 50)
 
         # Load pre-trained MAE models    
-        premodel_mut = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_mut_mae_best_split_{split_num}.pickle', *dims_mut)
-        premodel_exp = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_mae_best_split_{split_num}.pickle', *dims_exp)
-        premodel_cna = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_mae_best_split_{split_num}.pickle', *dims_cna)
-        premodel_meth = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_mae_best_split_{split_num}.pickle', *dims_meth)
-        premodel_fprint = MaskedAutoencoder(input_dim=train_dataset[:][4].shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
+        premodel_mut = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_mut_mae_best_split_{split_num}.pickle', *dims_mut)
+        premodel_exp = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_exp_mae_best_split_{split_num}.pickle', *dims_exp)
+        premodel_cna = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_cna_mae_best_split_{split_num}.pickle', *dims_cna)
+        premodel_meth = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_meth_mae_best_split_{split_num}.pickle', *dims_meth)
+        premodel_fprint = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_fprint_mae_best_split_{split_num}.pickle', *dims_fprint)
 
         # # Convert numpy arrays to PyTorch tensors and create datasets
         # tensor_mut_train = torch.tensor(train_dataset[:][0], dtype=torch.float32)
@@ -254,10 +253,10 @@ if __name__ == '__main__':
         y_true_test = np.array(targets_list).flatten()
         y_pred_test = np.array(predictions).flatten()
 
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_MAE_Split_{split_num}.txt', y_true_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_MAE_Split_{split_num}.txt', y_pred_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_MAE_Split_{split_num}.txt', y_true_test, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_MAE_Split_{split_num}.txt', y_pred_test, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_MAE_Split_{split_num}_LAST_AfterDecision.txt', y_true_train, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_MAE_Split_{split_num}_LAST_AfterDecision.txt', y_pred_train, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_MAE_Split_{split_num}_LAST_AfterDecision.txt', y_true_test, fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_MAE_Split_{split_num}_LAST_AfterDecision.txt', y_pred_test, fmt='%.6f')
 
         print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
         print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
