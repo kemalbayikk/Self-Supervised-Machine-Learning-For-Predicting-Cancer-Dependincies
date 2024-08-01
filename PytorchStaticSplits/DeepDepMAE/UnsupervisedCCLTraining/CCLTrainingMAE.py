@@ -23,7 +23,7 @@ class MaskedAutoencoder(nn.Module):
         self.decoder_fc2 = nn.Linear(second_layer_dim, first_layer_dim)
         self.decoder_fc3 = nn.Linear(first_layer_dim, input_dim)
 
-    def forward(self, x, mask_ratio=0.75):
+    def forward(self, x, mask_ratio=0.25):
         mask = torch.rand(x.shape).to(x.device) < mask_ratio
         x_masked = x * mask.float()
 
@@ -92,7 +92,7 @@ def train_mae(model, train_loader, val_loader, num_epochs, learning_rate, device
             best_loss = val_loss
             early_stop_counter = 0
             # Save the model's best weights
-            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_mae_best_split_{split_num}.pickle')
+            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_mae_best_split_{split_num}_mask_ratio_025.pickle')
 
     return model
 
@@ -143,31 +143,31 @@ if __name__ == '__main__':
 
     # data_types = ['mut', 'exp', 'cna', 'meth', 'fprint']
     
-    for split_num in range(1, 6):
+    for split_num in range(2, 6):
         with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
             train_dataset, val_dataset, test_dataset = pickle.load(f)
         
         data_dict = {
-            # 'mut': {
-            #     'train':train_dataset[:][0],
-            #     'val':val_dataset[:][0],
-            #     'test':test_dataset[:][0]
-            #     },
-            # 'exp': {
-            #     'train':train_dataset[:][1],
-            #     'val':val_dataset[:][1],
-            #     'test':test_dataset[:][1]
-            #     },
-            # 'cna': {
-            #     'train':train_dataset[:][2],
-            #     'val':val_dataset[:][2],
-            #     'test':test_dataset[:][2]
-            #     },
-            # 'meth': {
-            #     'train':train_dataset[:][3],
-            #     'val':val_dataset[:][3],
-            #     'test':test_dataset[:][3]
-            #     },
+            'mut': {
+                'train':train_dataset[:][0],
+                'val':val_dataset[:][0],
+                'test':test_dataset[:][0]
+                },
+            'exp': {
+                'train':train_dataset[:][1],
+                'val':val_dataset[:][1],
+                'test':test_dataset[:][1]
+                },
+            'cna': {
+                'train':train_dataset[:][2],
+                'val':val_dataset[:][2],
+                'test':test_dataset[:][2]
+                },
+            'meth': {
+                'train':train_dataset[:][3],
+                'val':val_dataset[:][3],
+                'test':test_dataset[:][3]
+                },
             'fprint': {
                 'train':train_dataset[:][4],
                 'val':val_dataset[:][4],
@@ -178,7 +178,7 @@ if __name__ == '__main__':
         for data_type, data_ccl in data_dict.items():
 
             print(data_ccl["train"])
-            run = wandb.init(project="NeedExtraUnsupervisedCCL", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}_MAE")
+            run = wandb.init(project="MAEDeepDepMaskRatioTest", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}_MAE_Mask025")
 
             config = wandb.config
             config.learning_rate = 1e-4
@@ -201,13 +201,13 @@ if __name__ == '__main__':
 
             # Define model dimensions and load pretrained VAEs
             if data_type == 'mut':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_pretrained/tcga_mut_mae_best_split_{split_num}.pickle', train_tensors.shape[1], 1000, 100, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_pretrained/tcga_mut_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 1000, 100, 50)
             elif data_type == 'exp':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_mae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'cna':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_mae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'meth':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_mae_best_split_{split_num}.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'fprint':
                 vae = MaskedAutoencoder(input_dim=train_tensors.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
             
