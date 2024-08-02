@@ -85,22 +85,22 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_path = ""  # Adjust this path if needed
 
-    # omics = ["exp","cna","meth"]
-    omics = ["mut"]
+    omics = ["exp","cna","meth"]
+    # omics = ["mut"]
     for omic in omics:
         print("Omic : ",omic)
         for split_num in range(1, 6):
-            run = wandb.init(project="DeepDepVAEBetaTest", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_Beta025")
+            run = wandb.init(project="DeepDepVAEBetaTest", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_Beta15")
 
             config = wandb.config
             config.learning_rate = 1e-4
             config.batch_size = 500
             config.epochs = 100
             config.patience = 10
-            config.first_layer_dim = 1000
-            config.second_layer_dim = 100
+            config.first_layer_dim = 500
+            config.second_layer_dim = 200
             config.latent_dim = 50
-            config.beta = 0.25
+            config.beta = 1.5
 
             device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
                     best_loss = val_loss
                     early_stop_counter = 0
                     # Save the model's best weights
-                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}_Beta025.pickle')
+                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_vae_best_split_{split_num}_Beta15.pickle')
 
             print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 

@@ -107,7 +107,7 @@ def train_vae(model, train_loader, val_loader, num_epochs, learning_rate, device
             best_loss = val_loss
             early_stop_counter = 0
             # Save the model's best weights
-            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_vae_best_split_{split_num}_beta050.pickle')
+            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_vae_best_split_{split_num}_beta15.pickle')
 
     return model
 
@@ -198,13 +198,13 @@ if __name__ == '__main__':
         for data_type, data_ccl in data_dict.items():
 
             print(data_ccl["train"])
-            run = wandb.init(project="DeepDepVAEBetaTest", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}_beta050")
+            run = wandb.init(project="DeepDepVAEBetaTest", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}_beta15")
 
             config = wandb.config
             config.learning_rate = 1e-4
             config.batch_size = 10000
             config.epochs = epochs
-            config.beta = 0.5
+            config.beta = 1.5
 
             # Extract tensors from val_dataset and test_dataset
             train_tensors = torch.tensor(data_ccl["train"], dtype=torch.float32).to(device)
@@ -222,13 +222,13 @@ if __name__ == '__main__':
 
             # Define model dimensions and load pretrained VAEs
             if data_type == 'mut':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_pretrained/tcga_mut_vae_best_split_{split_num}_beta050.pickle', train_tensors.shape[1], 1000, 100, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_pretrained/tcga_mut_vae_best_split_{split_num}_beta15.pickle', train_tensors.shape[1], 1000, 100, 50)
             elif data_type == 'exp':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}_beta050.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_vae_best_split_{split_num}_beta15.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'cna':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}_beta050.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_vae_best_split_{split_num}_beta15.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'meth':
-                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}_beta050.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_vae_best_split_{split_num}_beta15.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'fprint':
                 vae = VariationalAutoencoder(input_dim=train_tensors.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
             
