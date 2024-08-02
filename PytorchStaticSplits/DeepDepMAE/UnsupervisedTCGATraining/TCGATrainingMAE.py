@@ -43,7 +43,7 @@ class MaskedAutoencoder(nn.Module):
         self.decoder_fc2 = nn.Linear(second_layer_dim, first_layer_dim)
         self.decoder_fc3 = nn.Linear(first_layer_dim, input_dim)
 
-    def forward(self, x, mask_ratio=0.50):
+    def forward(self, x, mask_ratio=0.75):
         mask = torch.rand(x.shape).to(x.device) < mask_ratio
         x_masked = x * mask.float()
 
@@ -75,21 +75,21 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_path = ""  # Adjust this path if needed
 
-    omics = ["cna", "exp", "meth"]
-    # omics = ["mut"]
+    # omics = ["cna", "exp", "meth"]
+    omics = ["mut"]
 
     for omic in omics:
         print("Omic : ",omic)
         for split_num in range(1, 6):
-            run = wandb.init(project="MAEDeepDepMaskRatioTest", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_MAE_Mask050")
+            run = wandb.init(project="MAE_TCGA_LR_TEST", entity="kemal-bayik", name=f"TCGA_{omic}_{current_time}_Split_{split_num}_MAE_Mask075_LR2")
 
             config = wandb.config
-            config.learning_rate = 1e-4
+            config.learning_rate = 1e-2
             config.batch_size = 500
             config.epochs = 100
             config.patience = 10
-            config.first_layer_dim = 500
-            config.second_layer_dim = 200
+            config.first_layer_dim = 1000
+            config.second_layer_dim = 100
             config.latent_dim = 50
 
             device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -150,7 +150,7 @@ if __name__ == '__main__':
                     best_loss = val_loss
                     early_stop_counter = 0
                     # Save the model's best weights
-                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_mae_best_split_{split_num}_mask_ratio_050.pickle')
+                    save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_{omic}_mae_best_split_{split_num}_LR2.pickle')
 
             print('\nVAE training completed in %.1f mins' % ((time.time() - start_time) / 60))
 

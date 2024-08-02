@@ -92,7 +92,7 @@ def train_mae(model, train_loader, val_loader, num_epochs, learning_rate, device
             best_loss = val_loss
             early_stop_counter = 0
             # Save the model's best weights
-            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_mae_best_split_{split_num}_mask_ratio_025.pickle')
+            save_weights_to_pickle(model, f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/CCL_Pretrained/ccl_{data_name}_mae_best_split_{split_num}_LR_Test_After.pickle')
 
     return model
 
@@ -178,7 +178,7 @@ if __name__ == '__main__':
         for data_type, data_ccl in data_dict.items():
 
             print(data_ccl["train"])
-            run = wandb.init(project="MAEDeepDepMaskRatioTest", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}_MAE_Mask025")
+            run = wandb.init(project="DeepDepMAELRTestCCLPretraining", entity="kemal-bayik", name=f"SL_{data_type}_{ccl_size}CCL_{current_time}_Split{split_num}_MAE_Mask075_LR_Test_After")
 
             config = wandb.config
             config.learning_rate = 1e-4
@@ -201,13 +201,13 @@ if __name__ == '__main__':
 
             # Define model dimensions and load pretrained VAEs
             if data_type == 'mut':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_pretrained/tcga_mut_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 1000, 100, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_pretrained/tcga_mut_mae_best_split_{split_num}.pickle', train_tensors.shape[1], 1000, 100, 50)
             elif data_type == 'exp':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_exp_mae_best_split_{split_num}_LR3.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'cna':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_cna_mae_best_split_{split_num}_LR3.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'meth':
-                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_mae_best_split_{split_num}_mask_ratio_025.pickle', train_tensors.shape[1], 500, 200, 50)
+                vae = load_pretrained_mae(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/USL_Pretrained/tcga_meth_mae_best_split_{split_num}_LR3.pickle', train_tensors.shape[1], 500, 200, 50)
             elif data_type == 'fprint':
                 vae = MaskedAutoencoder(input_dim=train_tensors.shape[1], first_layer_dim=1000, second_layer_dim=100, latent_dim=50)
             
