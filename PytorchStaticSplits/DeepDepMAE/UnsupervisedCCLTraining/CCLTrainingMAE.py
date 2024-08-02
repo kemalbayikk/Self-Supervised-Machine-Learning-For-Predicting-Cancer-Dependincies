@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     # data_types = ['mut', 'exp', 'cna', 'meth', 'fprint']
     
-    for split_num in range(2, 6):
+    for split_num in range(1, 6):
         with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
             train_dataset, val_dataset, test_dataset = pickle.load(f)
         
