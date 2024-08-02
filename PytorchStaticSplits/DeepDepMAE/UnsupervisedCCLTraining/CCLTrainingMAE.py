@@ -23,7 +23,7 @@ class MaskedAutoencoder(nn.Module):
         self.decoder_fc2 = nn.Linear(second_layer_dim, first_layer_dim)
         self.decoder_fc3 = nn.Linear(first_layer_dim, input_dim)
 
-    def forward(self, x, mask_ratio=0.25):
+    def forward(self, x, mask_ratio=0.75):
         mask = torch.rand(x.shape).to(x.device) < mask_ratio
         x_masked = x * mask.float()
 
