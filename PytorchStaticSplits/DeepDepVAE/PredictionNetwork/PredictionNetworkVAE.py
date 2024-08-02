@@ -156,119 +156,96 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/PredictionNetworkModels/best_model_vae_split_{split_num}_LAST_AfterDecision_beta15.pth')
+            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/PredictionNetworkModels/VAE_Prediction_Network_Split_{split_num}_LR_{lr}.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
 
 if __name__ == '__main__':
 
-    for split_num in range(1, 6):
-
-        ccl_size = "278"
-        current_time = datetime.now().strftime("%m-%d_%H-%M")
-        # with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
-        #     data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
-
-        with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
-            train_dataset, val_dataset, test_dataset = pickle.load(f)
-
-        run = wandb.init(project="DeepDepVAEBetaTest", entity="kemal-bayik", name=f"Prediction_Network_{current_time}_VAE_Split_{split_num}_beta15")
-
-        config = wandb.config
-        config.learning_rate = 1e-4
-        config.batch_size = 10000
-        config.epochs = 100
-        config.patience = 3
-
-        latent_dim = 50
-
-        # Define dimensions for the pretrained VAEs
-        dims_mut = (train_dataset[:][0].shape[1], 1000, 100, 50)
-        dims_exp = (train_dataset[:][1].shape[1], 500, 200, 50)
-        dims_cna = (train_dataset[:][2].shape[1], 500, 200, 50)
-        dims_meth = (train_dataset[:][3].shape[1], 500, 200, 50)
-        dims_fprint = (train_dataset[:][4].shape[1], 1000, 100, 50)
-
-        # Load pre-trained VAE models    
-        premodel_mut = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_mut_vae_best_split_{split_num}_beta15.pickle', *dims_mut)
-        premodel_exp = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_exp_vae_best_split_{split_num}_beta15.pickle', *dims_exp)
-        premodel_cna = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_cna_vae_best_split_{split_num}_beta15.pickle', *dims_cna)
-        premodel_meth = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_meth_vae_best_split_{split_num}_beta15.pickle', *dims_meth)
-        premodel_fprint = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_fprint_vae_best_split_{split_num}_beta15.pickle', *dims_fprint)
-
-        # # Convert numpy arrays to PyTorch tensors and create datasets
-        # tensor_mut_train = torch.tensor(train_dataset[:][0], dtype=torch.float32)
-        # tensor_mut_val = torch.tensor(val_dataset[:][0], dtype=torch.float32)
-        # tensor_mut_test = torch.tensor(test_dataset[:][0], dtype=torch.float32)
-        # tensor_exp_train = torch.tensor(train_dataset[:][1], dtype=torch.float32)
-        # tensor_exp_val = torch.tensor(val_dataset[:][1], dtype=torch.float32)
-        # tensor_exp_test = torch.tensor(test_dataset[:][1], dtype=torch.float32)
-        # tensor_cna_train = torch.tensor(train_dataset[:][2], dtype=torch.float32)
-        # tensor_cna_val = torch.tensor(val_dataset[:][2], dtype=torch.float32)
-        # tensor_cna_test = torch.tensor(test_dataset[:][2], dtype=torch.float32)
-        # tensor_meth_train = torch.tensor(train_dataset[:][3], dtype=torch.float32)
-        # tensor_meth_val = torch.tensor(val_dataset[:][3], dtype=torch.float32)
-        # tensor_meth_test = torch.tensor(test_dataset[:][3], dtype=torch.float32)
-        # tensor_fprint_train = torch.tensor(train_dataset[:][4], dtype=torch.float32)
-        # tensor_fprint_val = torch.tensor(val_dataset[:][4], dtype=torch.float32)
-        # tensor_fprint_test = torch.tensor(test_dataset[:][4], dtype=torch.float32)
-
-        # dataset = TensorDataset(tensor_mut, tensor_exp, tensor_cna, tensor_meth, tensor_fprint, tensor_dep)
-
-        # # Train/test split
-        # train_size = int(0.9 * len(dataset))
-        # test_size = len(dataset) - train_size
-        # train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-
-        # print("Train size : ", train_size)
-        # print("Test size : ", test_size)
-
-        train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True)
-        test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
-
-        # Create the DeepDEP model using the pretrained VAE models
-        model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 250)
-        best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, split_num)
-
-        # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
-        model.load_state_dict(best_model_state_dict)
-        model.eval()
-        predictions = []
-        targets_list = []
-        with torch.no_grad():
-            for batch in test_loader:
-                inputs = [tensor.to(device) for tensor in batch[:-1]]
-                targets = batch[-1].to(device)
-                outputs = model(*inputs)
-                predictions.extend(outputs.cpu().numpy())
-                targets_list.extend(targets.cpu().numpy())
-
-        predictions = np.array(predictions).flatten()
-        targets = np.array(targets_list).flatten()
-        pearson_corr, _ = pearsonr(predictions, targets)
-        print(f"Test Pearson Correlation: {pearson_corr}")
-
-        wandb.log({
-            "test_pearson_correlation": pearson_corr,
-        })
+    learning_rates = [1e-2, 1e-3]
         
-        # # Plot results
-        y_true_train = np.array(training_targets_list).flatten()
-        y_pred_train = np.array(training_predictions).flatten()
-        y_true_test = np.array(targets_list).flatten()
-        y_pred_test = np.array(predictions).flatten()
+    for lr in learning_rates:
 
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_train_CCL_VAE_Split_{split_num}_LAST_AfterDecision_beta15.txt', y_true_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_train_CCL_VAE_Split_{split_num}_LAST_AfterDecision_beta15.txt', y_pred_train, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_test_CCL_VAE_Split_{split_num}_LAST_AfterDecision_beta15.txt', y_true_test, fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_test_CCL_VAE_Split_{split_num}_LAST_AfterDecision_beta15.txt', y_pred_test, fmt='%.6f')
+        for split_num in range(1, 6):
 
-        print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
-        print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
+            ccl_size = "278"
+            current_time = datetime.now().strftime("%m-%d_%H-%M")
+            # with open('Data/ccl_complete_data_278CCL_1298DepOI_360844samples.pickle', 'rb') as f:
+            #     data_mut, data_exp, data_cna, data_meth, data_dep, data_fprint = pickle.load(f)
 
-        #plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
-        #plot_density(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
+            with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
+                train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-        run.finish()
+            run = wandb.init(project="DeepDepVAELRTestPredictionNetwork", entity="kemal-bayik", name=f"Prediction_Network_{current_time}_VAE_Split_{split_num}_LR_{lr}")
+
+            config = wandb.config
+            config.learning_rate = lr
+            config.batch_size = 10000
+            config.epochs = 100
+            config.patience = 3
+
+            latent_dim = 50
+
+            # Define dimensions for the pretrained VAEs
+            dims_mut = (train_dataset[:][0].shape[1], 1000, 100, 50)
+            dims_exp = (train_dataset[:][1].shape[1], 500, 200, 50)
+            dims_cna = (train_dataset[:][2].shape[1], 500, 200, 50)
+            dims_meth = (train_dataset[:][3].shape[1], 500, 200, 50)
+            dims_fprint = (train_dataset[:][4].shape[1], 1000, 100, 50)
+
+            # Load pre-trained VAE models    
+            premodel_mut = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_mut_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_mut)
+            premodel_exp = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_exp_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_exp)
+            premodel_cna = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_cna_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_cna)
+            premodel_meth = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_meth_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_meth)
+            premodel_fprint = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_fprint_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_fprint)
+
+            train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
+            val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True)
+            test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
+
+            # Create the DeepDEP model using the pretrained VAE models
+            model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 250)
+            best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, split_num)
+
+            # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
+            model.load_state_dict(best_model_state_dict)
+            model.eval()
+            predictions = []
+            targets_list = []
+            with torch.no_grad():
+                for batch in test_loader:
+                    inputs = [tensor.to(device) for tensor in batch[:-1]]
+                    targets = batch[-1].to(device)
+                    outputs = model(*inputs)
+                    predictions.extend(outputs.cpu().numpy())
+                    targets_list.extend(targets.cpu().numpy())
+
+            predictions = np.array(predictions).flatten()
+            targets = np.array(targets_list).flatten()
+            pearson_corr, _ = pearsonr(predictions, targets)
+            print(f"Test Pearson Correlation: {pearson_corr}")
+
+            wandb.log({
+                "test_pearson_correlation": pearson_corr,
+            })
+            
+            # # Plot results
+            y_true_train = np.array(training_targets_list).flatten()
+            y_pred_train = np.array(training_predictions).flatten()
+            y_true_test = np.array(targets_list).flatten()
+            y_pred_test = np.array(predictions).flatten()
+
+            np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_train_Prediction_Network_VAE_Split_{split_num}_LR_{lr}.txt', y_true_train, fmt='%.6f')
+            np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_train_Prediction_Network_VAE_Split_{split_num}_LR_{lr}.txt', y_pred_train, fmt='%.6f')
+            np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_true_test_Prediction_Network_VAE_Split_{split_num}_LR_{lr}.txt', y_true_test, fmt='%.6f')
+            np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/predictions/y_pred_test_Prediction_Network_VAE_Split_{split_num}_LR_{lr}.txt', y_pred_test, fmt='%.6f')
+
+            print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
+            print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
+
+            #plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
+            #plot_density(y_true_train, y_pred_train, y_true_test, y_pred_test, config.batch_size, config.learning_rate, config.epochs)
+
+            run.finish()
