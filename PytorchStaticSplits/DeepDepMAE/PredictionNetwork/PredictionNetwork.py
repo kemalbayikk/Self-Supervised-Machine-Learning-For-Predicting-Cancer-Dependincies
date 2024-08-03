@@ -1,15 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader
 import pickle
 import numpy as np
 from scipy.stats import pearsonr
 from tqdm import tqdm
 import wandb
 from datetime import datetime
-import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 # device = "cuda"
