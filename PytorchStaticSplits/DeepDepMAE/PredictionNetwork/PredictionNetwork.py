@@ -167,7 +167,7 @@ if __name__ == '__main__':
             with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
                 train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-            run = wandb.init(project="MAEDeepDepMaskRatioTest", entity="kemal-bayik", name=f"Prediction_Network_{current_time}_MAE_Split_{split_num}_LR_{lr}")
+            run = wandb.init(project="DeepDepMAELRTestPredictionNetwork", entity="kemal-bayik", name=f"Prediction_Network_{current_time}_MAE_Split_{split_num}_LR_{lr}")
 
             config = wandb.config
             config.learning_rate = lr
@@ -257,10 +257,10 @@ if __name__ == '__main__':
             y_true_test = np.array(targets_list).flatten()
             y_pred_test = np.array(predictions).flatten()
 
-            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_MAE_Split_{split_num}_LAST_AfterDecision_mask_ratio_025.txt', y_true_train, fmt='%.6f')
-            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_MAE_Split_{split_num}_LAST_AfterDecision_mask_ratio_025.txt', y_pred_train, fmt='%.6f')
-            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_MAE_Split_{split_num}_LAST_AfterDecision_mask_ratio_025.txt', y_true_test, fmt='%.6f')
-            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_MAE_Split_{split_num}_LAST_AfterDecision_mask_ratio_025.txt', y_pred_test, fmt='%.6f')
+            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_MAE_Split_{split_num}_LR_Test_After.txt', y_true_train, fmt='%.6f')
+            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_MAE_Split_{split_num}_LR_Test_After.txt', y_pred_train, fmt='%.6f')
+            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_MAE_Split_{split_num}_LR_Test_After.txt', y_true_test, fmt='%.6f')
+            np.savetxt(f'PytorchStaticSplits/DeepDepMAE/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_MAE_Split_{split_num}_LR_Test_After.txt', y_pred_test, fmt='%.6f')
 
             print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
             print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
