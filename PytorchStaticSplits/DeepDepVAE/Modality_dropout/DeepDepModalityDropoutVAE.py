@@ -181,7 +181,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, 'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/best_model_vae_modality_dropout_newVAE_withsplit3_LAST_AfterDecision.pth')
+            torch.save(best_model_state_dict, 'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/best_model_vae_modality_dropout_newVAE_withsplit2_Best_Model.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -260,15 +260,15 @@ if __name__ == '__main__':
     ccl_size = "278"
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    split_num = 3
+    split_num = 2
 
     with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
             train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-    wandb.init(project="Latest-Model-VAE-PredictionNetwork", entity="kemal-bayik", name=f"Prediction_Network_Modality_Dropout_VAE_withsplit{split_num}_All_Modalities")
+    wandb.init(project="VAE-PredictionNetwork-BestModel-ModalityDropout", entity="kemal-bayik", name=f"Prediction_Network_Modality_Dropout_VAE_withsplit{split_num}_All_Modalities")
 
     config = wandb.config
-    config.learning_rate = 1e-4
+    config.learning_rate = 1e-3
     config.batch_size = 10000
     config.epochs = 100
     config.patience = 3
@@ -282,11 +282,11 @@ if __name__ == '__main__':
     dims_fprint = (train_dataset[:][4].shape[1], 1000, 100, 50)
 
     # Load pre-trained VAE models    
-    premodel_mut = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_mut_vae_best_split_{split_num}.pickle', *dims_mut)
-    premodel_exp = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_exp_vae_best_split_{split_num}.pickle', *dims_exp)
-    premodel_cna = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_cna_vae_best_split_{split_num}.pickle', *dims_cna)
-    premodel_meth = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_meth_vae_best_split_{split_num}.pickle', *dims_meth)
-    premodel_fprint = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_fprint_vae_best_split_{split_num}.pickle', *dims_fprint)
+    premodel_mut = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_mut_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_mut)
+    premodel_exp = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_exp_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_exp)
+    premodel_cna = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_cna_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_cna)
+    premodel_meth = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_meth_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_meth)
+    premodel_fprint = load_pretrained_vae(f'PytorchStaticSplits/DeepDepVAE/Results/Split{split_num}/CCL_Pretrained/ccl_fprint_vae_best_split_{split_num}_Beta1_LR_Test_After.pickle', *dims_fprint)
 
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True)
@@ -307,11 +307,11 @@ if __name__ == '__main__':
         })
         
         # Tahmin ve gerçek değerleri kaydetme
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_test_mask_{mask}_VAE_Modality_Dropout_NewVAE_withsplit3_LAST_AfterDecision.txt', res['targets'], fmt='%.6f')
-        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_test_mask_{mask}_VAE_Modality_Dropout_NewVAE_withsplit3_LAST_AfterDecision.txt', res['predictions'], fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_test_mask_{mask}_VAE_Modality_Dropout_NewVAE_withsplit2_Best_Model.txt', res['targets'], fmt='%.6f')
+        np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_test_mask_{mask}_VAE_Modality_Dropout_NewVAE_withsplit2_Best_Model.txt', res['predictions'], fmt='%.6f')
 
     # Save the best model
-    torch.save(best_model_state_dict, 'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/deepdep_vae_model_modality_dropout_NewVAE_split3_LAST_AfterDecision.pth')
+    torch.save(best_model_state_dict, 'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/deepdep_vae_model_modality_dropout_NewVAE_withsplit2_Best_Model.pth')
 
     # Plot results
     y_true_train = np.array(training_targets_list).flatten()
@@ -319,10 +319,10 @@ if __name__ == '__main__':
     y_true_test = results["0_0_0_0_0"]["targets"].flatten()  # Hiçbir modalite kapalı değilken
     y_pred_test = results["0_0_0_0_0"]["predictions"].flatten()  # Hiçbir modalite kapalı değilken
 
-    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_train_VAE_Modality_Dropout_NewVAE_withsplit3_LAST_AfterDecision.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_train_VAE_Modality_Dropout_NewVAE_withsplit3_LAST_AfterDecision.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_test_VAE_Modality_Dropout_NewVAE_withsplit3_LAST_AfterDecision.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_test_VAE_Modality_Dropout_NewVAE_withsplit3_LAST_AfterDecision.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_train_VAE_Modality_Dropout_NewVAE_withsplit2_Best_Model.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_train_VAE_Modality_Dropout_NewVAE_withsplit2_Best_Model.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_true_test_VAE_Modality_Dropout_NewVAE_withsplit2_Best_Model.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepVAE/Results/Split3/ModalityDropout/Predictions/y_pred_test_VAE_Modality_Dropout_NewVAE_withsplit2_Best_Model.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
