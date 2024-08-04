@@ -163,7 +163,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
 
 if __name__ == '__main__':
 
-    learning_rates = [1e-2, 1e-3]
+    learning_rates = [1e-4]
         
     for lr in learning_rates:
 
