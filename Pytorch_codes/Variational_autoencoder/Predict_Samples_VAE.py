@@ -96,7 +96,7 @@ def plot_density(y_true_train, y_pred_train, y_pred_test, batch_size, learning_r
     plt.title(f'Density plot of Dependency Scores\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs} VAE')
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
+    plt.savefig(f'PytorchStaticSplits/DeepDepVAE/Analysis/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
     plt.show()
 
 def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, learning_rate, epochs):
@@ -124,8 +124,8 @@ def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_siz
     coef_test = np.polyfit(y_pred_test, y_true_test, 1)
     poly1d_fn_test = np.poly1d(coef_test)
     plt.plot(np.unique(y_pred_test), poly1d_fn_test(np.unique(y_pred_test)), color='red')
-    plt.xlabel('DeepDEP-predicted score')
-    plt.ylabel('Original dependency score')
+    plt.xlabel('VAE DeepDEP Predicted Score')
+    plt.ylabel('Original Dependency Score')
     plt.title(f'Testing\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs}, VAE')
     plt.xlim(-4, 5)
     plt.ylim(-4, 5)
@@ -135,62 +135,62 @@ def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_siz
     plt.text(0.1, 0.8, f'y = {coef_test[0]:.2f}x + {coef_test[1]:.2f}', color='red', transform=plt.gca().transAxes)
 
     plt.tight_layout()
-    plt.savefig(f'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/prediction_scatter_plots_{batch_size}_{learning_rate}_{epochs}_VAE.png')
+    plt.savefig(f'PytorchStaticSplits/DeepDepVAE/Analysis/prediction_scatter_plots_{batch_size}_{learning_rate}_{epochs}_VAE.png')
     plt.show()
 
 if __name__ == '__main__':
-    model_name = "best_model_vae_split_2"  # "model_paper"
-    device = "mps"
+    # device = "mps"
     
-    # Define the model architecture with correct dimensions
-    dims_mut = 4539  # Correct dimension based on the error message
-    dims_exp = 6016
-    dims_cna = 7460
-    dims_meth = 6617
-    fprint_dim = 3115  # Correct dimension based on the error message
-    dense_layer_dim = 250
+    # # Define the model architecture with correct dimensions
+    # dims_mut = 4539  # Correct dimension based on the error message
+    # dims_exp = 6016
+    # dims_cna = 7460
+    # dims_meth = 6617
+    # fprint_dim = 3115  # Correct dimension based on the error message
+    # dense_layer_dim = 250
 
-    model = DeepDEP(dims_mut, dims_exp, dims_cna, dims_meth, fprint_dim, dense_layer_dim).to(device)
+    # model = DeepDEP(dims_mut, dims_exp, dims_cna, dims_meth, fprint_dim, dense_layer_dim).to(device)
 
-    # Load the PyTorch model state dictionary
-    model.load_state_dict(torch.load(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/{model_name}.pth", map_location=device))
-    model.eval()
+    # # Load the PyTorch model state dictionary
+    # model.load_state_dict(torch.load(f"PytorchStaticSplits/DeepDepVAE/Results/Split2/PredictionNetworkModels/VAE_Prediction_Network_Split_2_LR_0.001.pth", map_location=device))
+    # model.eval()
 
-    # Load TCGA genomics data and gene fingerprints
-    data_mut_tcga, data_labels_mut_tcga, sample_names_mut_tcga, gene_names_mut_tcga = load_data("Data/TCGA/tcga_mut_data_paired_with_ccl.txt")
-    data_exp_tcga, data_labels_exp_tcga, sample_names_exp_tcga, gene_names_exp_tcga = load_data("Data/TCGA/tcga_exp_data_paired_with_ccl.txt")
-    data_cna_tcga, data_labels_cna_tcga, sample_names_cna_tcga, gene_names_cna_tcga = load_data("Data/TCGA/tcga_cna_data_paired_with_ccl.txt")
-    data_meth_tcga, data_labels_meth_tcga, sample_names_meth_tcga, gene_names_meth_tcga = load_data("Data/TCGA/tcga_meth_data_paired_with_ccl.txt")
-    data_fprint_1298DepOIs, data_labels_fprint, gene_names_fprint, function_names_fprint = load_data("Data/crispr_gene_fingerprint_cgp.txt")
-    print("\n\nDatasets successfully loaded.\n\n")
+    # # Load TCGA genomics data and gene fingerprints
+    # data_mut_tcga, data_labels_mut_tcga, sample_names_mut_tcga, gene_names_mut_tcga = load_data("Data/TCGA/tcga_mut_data_paired_with_ccl.txt")
+    # data_exp_tcga, data_labels_exp_tcga, sample_names_exp_tcga, gene_names_exp_tcga = load_data("Data/TCGA/tcga_exp_data_paired_with_ccl.txt")
+    # data_cna_tcga, data_labels_cna_tcga, sample_names_cna_tcga, gene_names_cna_tcga = load_data("Data/TCGA/tcga_cna_data_paired_with_ccl.txt")
+    # data_meth_tcga, data_labels_meth_tcga, sample_names_meth_tcga, gene_names_meth_tcga = load_data("Data/TCGA/tcga_meth_data_paired_with_ccl.txt")
+    # data_fprint_1298DepOIs, data_labels_fprint, gene_names_fprint, function_names_fprint = load_data("Data/crispr_gene_fingerprint_cgp.txt")
+    # print("\n\nDatasets successfully loaded.\n\n")
 
-    batch_size = 10000
-    first_to_predict = 8238
-    data_pred = np.zeros((first_to_predict, data_fprint_1298DepOIs.shape[0]))
+    # batch_size = 10000
+    # first_to_predict = 8238
+    # data_pred = np.zeros((first_to_predict, data_fprint_1298DepOIs.shape[0]))
     
-    t = time.time()
-    for z in np.arange(0, first_to_predict):
-        data_mut_batch = torch.tensor(data_mut_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
-        data_exp_batch = torch.tensor(data_exp_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
-        data_cna_batch = torch.tensor(data_cna_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
-        data_meth_batch = torch.tensor(data_meth_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
-        data_fprint_batch = torch.tensor(data_fprint_1298DepOIs, dtype=torch.float32).to(device)
+    # t = time.time()
+    # for z in np.arange(0, first_to_predict):
+    #     data_mut_batch = torch.tensor(data_mut_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
+    #     data_exp_batch = torch.tensor(data_exp_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
+    #     data_cna_batch = torch.tensor(data_cna_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
+    #     data_meth_batch = torch.tensor(data_meth_tcga[np.repeat(z, data_fprint_1298DepOIs.shape[0])], dtype=torch.float32).to(device)
+    #     data_fprint_batch = torch.tensor(data_fprint_1298DepOIs, dtype=torch.float32).to(device)
 
-        with torch.no_grad():
-            data_pred_tmp = model(data_mut_batch, data_exp_batch, data_cna_batch, data_meth_batch, data_fprint_batch).cpu().numpy()
+    #     with torch.no_grad():
+    #         data_pred_tmp = model(data_mut_batch, data_exp_batch, data_cna_batch, data_meth_batch, data_fprint_batch).cpu().numpy()
         
-        data_pred[z] = np.transpose(data_pred_tmp)
-        print("TCGA sample %d predicted..." % z)
+    #     data_pred[z] = np.transpose(data_pred_tmp)
+    #     print("TCGA sample %d predicted..." % z)
 
-    y_true_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_train_CCL_VAE_Split_2.txt', dtype=float)
-    y_pred_train = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_train_CCL_VAE_Split_2.txt', dtype=float)
-    y_true_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_true_test_CCL_VAE_Split_2.txt', dtype=float)
-    y_pred_test = np.loadtxt('Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/y_pred_test_CCL_VAE_Split_2.txt', dtype=float)
+    y_true_train = np.loadtxt('PytorchStaticSplits/DeepDepVAE/Results/Split2/predictions/y_true_train_Prediction_Network_VAE_Split_2_LR_0.001.txt', dtype=float)
+    y_pred_train = np.loadtxt('PytorchStaticSplits/DeepDepVAE/Results/Split2/predictions/y_pred_train_Prediction_Network_VAE_Split_2_LR_0.001.txt', dtype=float)
+    y_true_test = np.loadtxt('PytorchStaticSplits/DeepDepVAE/Results/Split2/predictions/y_true_test_Prediction_Network_VAE_Split_2_LR_0.001.txt', dtype=float)
+    y_pred_test = np.loadtxt('PytorchStaticSplits/DeepDepVAE/Results/Split2/predictions/y_pred_test_Prediction_Network_VAE_Split_2_LR_0.001.txt', dtype=float)
 
-    # Write prediction results to txt
-    data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
-    data_pred_df.to_csv(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/tcga_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
-    print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
 
-    # plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),batch_size,1e-4,100)
-    # plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, 1e-4, 100)
+    # # Write prediction results to txt
+    # data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
+    # data_pred_df.to_csv(f"PytorchStaticSplits/DeepDepVAE/Analysis/tcga_predicted_data.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
+    # # print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
+
+    # plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),batch_size,1e-3,100)
+    plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, 10000, 1e-3, 100)
