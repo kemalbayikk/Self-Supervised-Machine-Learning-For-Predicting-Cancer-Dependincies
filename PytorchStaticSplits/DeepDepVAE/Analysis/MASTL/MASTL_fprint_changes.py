@@ -167,7 +167,7 @@ if __name__ == '__main__':
     print("\n\nDatasets successfully loaded.\n\n")
 
     batch_size = 10000
-    first_to_predict = 10
+    first_to_predict = 2
     data_pred = np.zeros((first_to_predict, data_fprint_1298DepOIs.shape[0]))
 
     predictions = []
@@ -216,7 +216,7 @@ if __name__ == '__main__':
                     fprint_tensor
                 ).cpu().numpy()
 
-            mastl_dependency_scores.append(data_pred_tmp[mastl_index, :].flatten())
+            mastl_dependency_scores.append(data_pred_tmp[:, mastl_index].flatten())
 
     # Sonuçları DataFrame olarak kaydet
     mastl_dependency_scores_df = pd.DataFrame(mastl_dependency_scores, index=gene_names_fprint)
