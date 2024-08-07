@@ -89,16 +89,22 @@ if __name__ == '__main__':
     model.eval()
 
     # TCGA genomik verilerini ve gen fingerprint verilerini yükle
-    data_mut_tcga, data_labels_mut_tcga, sample_names_mut_tcga, gene_names_mut_tcga = load_data("Data/CCL/ccl_mut_data_paired_with_tcga.txt")
+    data_mut_tcga, data_labels_mut_tcga, sample_names_mut_tcga, gene_names_mut_tcga = load_data("Data/TCGA/tcga_mut_data_paired_with_ccl.txt")
     data_fprint_1298DepOIs, data_labels_fprint, gene_names_fprint, function_names_fprint = load_data("Data/crispr_gene_fingerprint_cgp.txt")
     print("\n\nDatasets successfully loaded.\n\n")
 
     # BRCA1 için analiz yap
     brca1_index = gene_names_mut_tcga.index('BRCA1')
-    data_pred = np.zeros((len(sample_names_mut_tcga), data_fprint_1298DepOIs.shape[0]))
+    
+    # BRCA1 mutasyonlu örnekleri belirle
+    brca1_mutated_samples = [i for i in range(len(sample_names_mut_tcga)) if data_mut_tcga[i, brca1_index] == 1]
+
+    print(brca1_mutated_samples)
+
+    data_pred = np.zeros((len(brca1_mutated_samples), data_fprint_1298DepOIs.shape[0]))
 
     t = time.time()
-    for z in range(len(sample_names_mut_tcga)):
+    for idx, z in enumerate(brca1_mutated_samples):
         # Her örnek için 2 durum: (BRCA1) => (0), (1)
         data_mut_batch = np.zeros((data_fprint_1298DepOIs.shape[0], dims_mut), dtype='float32')
         data_mut_batch[:, :] = data_mut_tcga[z, :]  # Diğer genlerin mutasyon durumunu koru
@@ -108,7 +114,7 @@ if __name__ == '__main__':
 
         with torch.no_grad():
             # 1. BRCA1 mutasyonlu durum
-            data_mut_batch[:, brca1_index] = 1.0
+            # data_mut_batch[:, brca1_index] = 1.0
             output_mut = model(data_mut_batch, data_fprint_batch).cpu().numpy()
 
             # 2. BRCA1 mutasyonsuz durum
@@ -117,18 +123,18 @@ if __name__ == '__main__':
         
         # SE skorları: mutasyonlu - mutasyonsuz
         se_scores = output_mut - output_wt
-        data_pred[z] = np.transpose(se_scores)
+        data_pred[idx] = np.transpose(se_scores)
         print("TCGA sample %d predicted..." % z)
 
     # Sonuçları CSV dosyasına yaz
-    data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga)
+    data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=[sample_names_mut_tcga[i] for i in brca1_mutated_samples])
     data_pred_df.to_csv(f"PytorchStaticSplits/SyntheticEssentiality/BRCA1_mut_predictions_CCL.csv", index_label='DepOI', float_format='%.4f')
 
     # Her gen için ortalama SE skorunu hesaplama
     average_se_scores = data_pred_df.mean(axis=1)
 
     # En düşük ortalama SE skorlarına sahip 10 genin seçimi
-    lowest_se_genes = average_se_scores.nsmallest(20)
+    lowest_se_genes = average_se_scores.nsmallest(30)
 
     # Grafiği çizme
     plt.figure(figsize=(10, 6))
