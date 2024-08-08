@@ -96,7 +96,7 @@ def plot_density(y_true_train, y_pred_train, y_pred_test, batch_size, learning_r
     plt.title(f'Density plot of Dependency Scores\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {epochs} VAE')
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
+    plt.savefig(f'PytorchStaticSplits/DeepDepVAE/Analysis/dependency_score_density_plot_{batch_size}_{learning_rate}_{epochs}_VAE_last.png')
     plt.show()
 
 def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, learning_rate, epochs):
@@ -135,11 +135,10 @@ def plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_siz
     plt.text(0.1, 0.8, f'y = {coef_test[0]:.2f}x + {coef_test[1]:.2f}', color='red', transform=plt.gca().transAxes)
 
     plt.tight_layout()
-    plt.savefig(f'Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/prediction_scatter_plots_{batch_size}_{learning_rate}_{epochs}_VAE.png')
+    plt.savefig(f'PytorchStaticSplits/DeepDepVAE/Analysis/prediction_scatter_plots_{batch_size}_{learning_rate}_{epochs}_VAE.png')
     plt.show()
 
 if __name__ == '__main__':
-    model_name = "best_model_vae_split_2"  # "model_paper"
     device = "mps"
     
     # Define the model architecture with correct dimensions
@@ -153,7 +152,7 @@ if __name__ == '__main__':
     model = DeepDEP(dims_mut, dims_exp, dims_cna, dims_meth, fprint_dim, dense_layer_dim).to(device)
 
     # Load the PyTorch model state dictionary
-    model.load_state_dict(torch.load(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/{model_name}.pth", map_location=device))
+    model.load_state_dict(torch.load(f"PytorchStaticSplits/DeepDepVAE/Results/Split2/PredictionNetworkModels/VAE_Prediction_Network_Split_2_LR_0.001.pth", map_location=device))
     model.eval()
 
     # Load TCGA genomics data and gene fingerprints
@@ -189,8 +188,8 @@ if __name__ == '__main__':
 
     # Write prediction results to txt
     data_pred_df = pd.DataFrame(data=np.transpose(data_pred), index=gene_names_fprint, columns=sample_names_mut_tcga[0:first_to_predict])
-    data_pred_df.to_csv(f"Pytorch_codes/Variational_autoencoder/Models To Analyze/Split 2 VAE/ccl_predicted_data_{model_name}.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
-    print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
+    data_pred_df.to_csv(f"PytorchStaticSplits/DeepDepVAE/Analysis/ccl_predicted_data.txt", sep='\t', index_label='CRISPR_GENE', float_format='%.4f')
+    # print("\n\nPrediction completed in %.1f mins.\nResults saved in /results/predictions/tcga_predicted_data_%s.txt\n\n" % ((time.time()-t)/60, model_name))
 
     # plot_density(y_true_train[0:len(y_true_train) - 1].flatten(),y_pred_train[0:len(y_pred_train) - 1].flatten(),data_pred.flatten(),batch_size,1e-4,100)
     # plot_results(y_true_train, y_pred_train, y_true_test, y_pred_test, batch_size, 1e-4, 100)
