@@ -19,7 +19,7 @@ def load_split(split_num):
 split_num = 2
 
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_278CCL_{current_time}_Original_Split_{split_num}")
+run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_278CCL_{current_time}_Original_Split_{split_num}_mutfingerprint")
 
 # Example of loading split 1
 train_dataset, val_dataset, test_dataset = load_split(split_num)
@@ -64,7 +64,7 @@ premodel_meth = pickle.load(open(f'PytorchStaticSplits/OriginalCode/Results/Spli
 activation_func = 'relu'
 activation_func2 = 'linear'
 init = 'he_uniform'
-dense_layer_dim = 250
+dense_layer_dim = 100
 num_epoch = 100
 num_DepOI = 1298
 
@@ -97,12 +97,12 @@ model_gene = Dense(100, activation=activation_func, kernel_initializer=init)(mod
 model_gene = Dense(50, activation=activation_func, kernel_initializer=init)(model_gene)
 
 # Alt ağları birleştir
-merged = Concatenate()([model_mut, model_exp, model_cna, model_meth, model_gene])
+merged = Concatenate()([model_mut, model_gene])
 x = Dense(dense_layer_dim, activation=activation_func, kernel_initializer=init)(merged)
 x = Dense(dense_layer_dim, activation=activation_func, kernel_initializer=init)(x)
 output = Dense(1, activation=activation_func2, kernel_initializer=init)(x)
 
-model_final = models.Model(inputs=[input_mut, input_exp, input_cna, input_meth, input_gene], outputs=output)
+model_final = models.Model(inputs=[input_mut, input_gene], outputs=output)
 
 # Compile and train the model
 model_final.compile(loss='mse', optimizer='adam')
@@ -112,10 +112,10 @@ train_predictions = []
 # Training loop with wandb logging
 for epoch in range(num_epoch):
     model_final.fit(
-        [data_mut_train, data_exp_train, data_cna_train, data_meth_train, data_fprint_train],
+        [data_mut_train, data_fprint_train],
         data_dep_train,
         epochs=1,
-        validation_data=([data_mut_val, data_exp_val, data_cna_val, data_meth_val, data_fprint_val], data_dep_val),
+        validation_data=([data_mut_val, data_fprint_val], data_dep_val),
         batch_size=batch_size,
         callbacks=[history]
     )
@@ -129,7 +129,7 @@ for epoch in range(num_epoch):
     print("Validation predict")
 
     # Calculate Pearson correlation for validation set
-    val_predictions = model_final.predict([data_mut_val, data_exp_val, data_cna_val, data_meth_val, data_fprint_val])
+    val_predictions = model_final.predict([data_mut_val, data_fprint_val])
     pearson_corr_val, _ = pearsonr(val_predictions.flatten(), data_dep_val.flatten())
 
     print(f"Val Pearson correlation: {pearson_corr_val}")
@@ -143,20 +143,20 @@ for epoch in range(num_epoch):
         "epoch": epoch + 1
     })
 
-train_predictions = model_final.predict([data_mut_train, data_exp_train, data_cna_train, data_meth_train, data_fprint_train])
+train_predictions = model_final.predict([data_mut_train, data_fprint_train])
 
 
 # Evaluate the model and calculate Pearson correlation for the test set
-test_loss = model_final.evaluate([data_mut_test, data_exp_test, data_cna_test, data_meth_test, data_fprint_test], data_dep_test)
-test_predictions = model_final.predict([data_mut_test, data_exp_test, data_cna_test, data_meth_test, data_fprint_test])
+test_loss = model_final.evaluate([data_mut_test, data_fprint_test], data_dep_test)
+test_predictions = model_final.predict([data_mut_test, data_fprint_test])
 pearson_corr_test, _ = pearsonr(test_predictions.flatten(), data_dep_test.flatten())
 
 # Save the train true and prediction values
-np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_Split_{split_num}_Original.txt', data_dep_train.flatten(), fmt='%.6f')
-np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_Split_{split_num}_Original.txt', train_predictions.flatten(), fmt='%.6f')
+np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_Split_{split_num}_Original_mutfingerprint.txt', data_dep_train.flatten(), fmt='%.6f')
+np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_Split_{split_num}_Original_mutfingerprint.txt', train_predictions.flatten(), fmt='%.6f')
 
-np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_Split_{split_num}_Original.txt', data_dep_test.flatten(), fmt='%.6f')
-np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_Split_{split_num}_Original.txt', test_predictions.flatten(), fmt='%.6f')
+np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_Split_{split_num}_Original_mutfingerprint.txt', data_dep_test.flatten(), fmt='%.6f')
+np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_Split_{split_num}_Original_mutfingerprint.txt', test_predictions.flatten(), fmt='%.6f')
 
 # Log test loss and Pearson correlation to wandb
 wandb.log({
@@ -169,7 +169,7 @@ print(f"Test loss: {test_loss}")
 print(f"Test Pearson correlation: {pearson_corr_test}")
 
 # Save the model
-model_final.save(f"PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/model_full_{split_num}.h5")
-print(f"PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/model_full_{split_num}.h5")
+model_final.save(f"PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/model_full_{split_num}_mutfingerprint.h5")
+print(f"PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/model_full_{split_num}_mutfingerprint.h5")
 
 run.finish()

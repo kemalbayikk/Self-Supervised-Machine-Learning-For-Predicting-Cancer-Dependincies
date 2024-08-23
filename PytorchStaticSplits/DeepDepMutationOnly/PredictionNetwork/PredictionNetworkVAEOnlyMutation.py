@@ -56,10 +56,9 @@ class DeepDEP(nn.Module):
         self.fc_out = nn.Linear(dense_layer_dim, 1)
 
     def forward(self, mut, exp, cna, meth, fprint):
-        recon_mut, mu_mut, logvar_mut = self.vae_mut(mut)
         recon_gene, mu_fprint, logvar_gene = self.vae_fprint(fprint)
         
-        merged = torch.cat([mu_mut, mu_fprint], dim=1)
+        merged = torch.cat([mu_fprint], dim=1)
         merged = torch.relu(self.fc_merged1(merged))
         merged = torch.relu(self.fc_merged2(merged))
         output = self.fc_out(merged)
@@ -150,7 +149,7 @@ def train_model(model, train_loader, test_loader, num_epoch, patience, learning_
             best_loss = test_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepMutationOnly/Results/Split{split_num}/PredictionNetworkModels/VAE_Prediction_Network_Split_{split_num}_Only_Mutation.pth')
+            torch.save(best_model_state_dict, f'PytorchStaticSplits/DeepDepFingerprintOnly/Results/Split{split_num}/PredictionNetworkModels/VAE_Prediction_Network_Split_{split_num}_Only_Fingerprint.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -169,7 +168,7 @@ if __name__ == '__main__':
     with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
         train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-    run = wandb.init(project="DeepDepVAELRTestPredictionNetwork", entity="kemal-bayik", name=f"Prediction_Network_{current_time}_VAE_Split_{split_num}_Only_Mutation")
+    run = wandb.init(project="DeepDepVAELRTestPredictionNetwork", entity="kemal-bayik", name=f"Prediction_Network_{current_time}_VAE_Split_{split_num}_Only_Fingerprint")
 
     config = wandb.config
     config.learning_rate = lr
@@ -198,7 +197,7 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
 
     # Create the DeepDEP model using the pretrained VAE models
-    model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 100)
+    model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, 50)
     best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, split_num)
 
     # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
@@ -229,10 +228,10 @@ if __name__ == '__main__':
     y_true_test = np.array(targets_list).flatten()
     y_pred_test = np.array(predictions).flatten()
 
-    np.savetxt(f'PytorchStaticSplits/DeepDepMutationOnly/Results/Split{split_num}/predictions/y_true_train_Prediction_Network_VAE_Split_{split_num}_Only_Mutation.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/DeepDepMutationOnly/Results/Split{split_num}/predictions/y_pred_train_Prediction_Network_VAE_Split_{split_num}_Only_Mutation.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/DeepDepMutationOnly/Results/Split{split_num}/predictions/y_true_test_Prediction_Network_VAE_Split_{split_num}_Only_Mutation.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/DeepDepMutationOnly/Results/Split{split_num}/predictions/y_pred_test_Prediction_Network_VAE_Split_{split_num}_Only_Mutation.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepFingerprintOnly/Results/Split{split_num}/predictions/y_true_train_Prediction_Network_VAE_Split_{split_num}_Only_Fingerprint.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepFingerprintOnly/Results/Split{split_num}/predictions/y_pred_train_Prediction_Network_VAE_Split_{split_num}_Only_Fingerprint.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepFingerprintOnly/Results/Split{split_num}/predictions/y_true_test_Prediction_Network_VAE_Split_{split_num}_Only_Fingerprint.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/DeepDepFingerprintOnly/Results/Split{split_num}/predictions/y_pred_test_Prediction_Network_VAE_Split_{split_num}_Only_Fingerprint.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")

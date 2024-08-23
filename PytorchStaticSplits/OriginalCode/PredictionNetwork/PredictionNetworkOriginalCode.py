@@ -8,9 +8,6 @@ from scipy.stats import pearsonr
 from tqdm import tqdm
 import wandb
 from datetime import datetime
-import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error
-import seaborn as sns
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 # device = "cuda"
@@ -45,7 +42,7 @@ class DeepDEP(nn.Module):
         self.ae_fprint = premodel_fprint
 
         # Calculate the total dimension after concatenating latent dimensions
-        latent_dim_total = latent_dim * 5  # 5 autoencoders with latent_dim each
+        latent_dim_total = latent_dim * 2  # 5 autoencoders with latent_dim each
         self.fc_merged1 = nn.Linear(latent_dim_total, dense_layer_dim)
         self.fc_merged2 = nn.Linear(dense_layer_dim, dense_layer_dim)
         self.fc_out = nn.Linear(dense_layer_dim, 1)
@@ -57,7 +54,7 @@ class DeepDEP(nn.Module):
         latent_meth = self.ae_meth(meth)
         latent_fprint = self.ae_fprint(fprint)
         
-        merged = torch.cat([latent_mut, latent_exp, latent_cna, latent_meth, latent_fprint], dim=1)
+        merged = torch.cat([latent_mut, latent_fprint], dim=1)
         merged = torch.relu(self.fc_merged1(merged))
         merged = torch.relu(self.fc_merged2(merged))
         output = self.fc_out(merged)
@@ -153,7 +150,7 @@ def train_model(model, train_loader, val_loader, num_epoch, patience, learning_r
             best_loss = val_loss
             epochs_no_improve = 0
             best_model_state_dict = model.state_dict()
-            torch.save(best_model_state_dict, f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/best_model_ae_split_{split_num}.pth')
+            torch.save(best_model_state_dict, f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/best_model_ae_split_{split_num}_mutfingerprint.pth')
             print("Model saved")
 
     return best_model_state_dict, training_predictions, training_targets_list
@@ -170,7 +167,7 @@ if __name__ == '__main__':
     with open(f'Data/data_split_{split_num}.pickle', 'rb') as f:
         train_dataset, val_dataset, test_dataset = pickle.load(f)
 
-    run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_AE_Split_{split_num}")
+    run = wandb.init(project="Self-Supervised-Machine-Learning-For-Predicting-Cancer-Dependencies-Splits", entity="kemal-bayik", name=f"Just_NN_{ccl_size}CCL_{current_time}_AE_Split_{split_num}_MutFingerprint")
 
     config = wandb.config
     config.learning_rate = 1e-4
@@ -199,7 +196,7 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
 
     # Create the DeepDEP model using the pretrained MAE models
-    model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, latent_dim, 250)
+    model = DeepDEP(premodel_mut, premodel_exp, premodel_cna, premodel_meth, premodel_fprint, latent_dim, 100)
     best_model_state_dict, training_predictions, training_targets_list = train_model(model, train_loader, val_loader, config.epochs, config.patience, config.learning_rate, split_num)
 
     # En iyi modeli yükleyip Pearson Korelasyonunu hesaplama
@@ -233,10 +230,10 @@ if __name__ == '__main__':
     y_true_test = np.array(targets_list).flatten()
     y_pred_test = np.array(predictions).flatten()
 
-    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_AE_Split_{split_num}.txt', y_true_train, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_AE_Split_{split_num}.txt', y_pred_train, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_AE_Split_{split_num}.txt', y_true_test, fmt='%.6f')
-    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_AE_Split_{split_num}.txt', y_pred_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_train_CCL_AE_Split_{split_num}_MutFingerprint.txt', y_true_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_train_CCL_AE_Split_{split_num}_MutFingerprint.txt', y_pred_train, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_true_test_CCL_AE_Split_{split_num}_MutFingerprint.txt', y_true_test, fmt='%.6f')
+    np.savetxt(f'PytorchStaticSplits/OriginalCode/Results/Split{split_num}/PredictionNetworkModels/Predictions/y_pred_test_CCL_AE_Split_{split_num}_MutFingerprint.txt', y_pred_test, fmt='%.6f')
 
     print(f"Training: y_true_train size: {len(y_true_train)}, y_pred_train size: {len(y_pred_train)}")
     print(f"Testing: y_true_test size: {len(y_true_test)}, y_pred_test size: {len(y_pred_test)}")
